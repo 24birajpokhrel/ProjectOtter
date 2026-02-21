@@ -1,0 +1,373 @@
+/*
+ * ProjectOtter — popup/popup.css
+ *
+ * Design tokens, popup chrome, feature cards, and control components.
+ * NOT injected into webpages — this file is the extension popup UI only.
+ */
+
+/* ─── Design tokens ──────────────────────────────────────────────────────── */
+:root {
+    /* Colours */
+    --clr-bg          : #0d0d10;
+    --clr-surface     : #16161c;
+    --clr-surface-2   : #1e1e26;
+    --clr-border      : #262630;
+    --clr-border-2    : #30303d;
+    --clr-accent      : #f5c842;
+    --clr-accent-dim  : rgba(245, 200, 66, 0.12);
+    --clr-accent-glow : rgba(245, 200, 66, 0.25);
+    --clr-text        : #eae8e1;
+    --clr-text-2      : #9a9890;
+    --clr-text-muted  : #55544f;
+    --clr-dim         : rgba(0, 0, 0, 0.45);
+  
+    /* Spacing */
+    --sp-1 : 4px;
+    --sp-2 : 8px;
+    --sp-3 : 12px;
+    --sp-4 : 16px;
+    --sp-5 : 20px;
+  
+    /* Shape */
+    --radius    : 10px;
+    --radius-sm : 6px;
+    --radius-xs : 4px;
+  
+    /* Typography */
+    --font-sans : 'DM Sans', system-ui, sans-serif;
+    --font-mono : 'DM Mono', 'Fira Code', monospace;
+  
+    /* Motion */
+    --ease   : cubic-bezier(.4, 0, .2, 1);
+    --dur    : 150ms;
+  }
+  
+  /* ─── Reset ──────────────────────────────────────────────────────────────── */
+  *, *::before, *::after {
+    box-sizing : border-box;
+    margin     : 0;
+    padding    : 0;
+  }
+  
+  /* ─── Base ───────────────────────────────────────────────────────────────── */
+  body {
+    width                  : 320px;
+    background             : var(--clr-bg);
+    color                  : var(--clr-text);
+    font-family            : var(--font-sans);
+    font-size              : 13px;
+    line-height            : 1.5;
+    -webkit-font-smoothing : antialiased;
+    overflow               : hidden;
+    user-select            : none;
+  }
+  
+  /* ─── Header ─────────────────────────────────────────────────────────────── */
+  .header {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+    padding         : var(--sp-3) var(--sp-4);
+    border-bottom   : 1px solid var(--clr-border);
+    background      : var(--clr-surface);
+  }
+  
+  .header__brand {
+    display     : flex;
+    align-items : center;
+    gap         : var(--sp-2);
+  }
+  
+  .header__icon {
+    width            : 28px;
+    height           : 28px;
+    background       : var(--clr-accent);
+    border-radius    : var(--radius-sm);
+    display          : flex;
+    align-items      : center;
+    justify-content  : center;
+    color            : #0d0d10;
+    flex-shrink      : 0;
+  }
+  
+  .header__icon svg {
+    width  : 16px;
+    height : 16px;
+  }
+  
+  .header__title {
+    display      : block;
+    font-family  : var(--font-mono);
+    font-size    : 12px;
+    font-weight  : 500;
+    letter-spacing: 0.04em;
+    color        : var(--clr-text);
+    line-height  : 1.2;
+  }
+  
+  .header__sub {
+    display        : block;
+    font-size      : 10px;
+    color          : var(--clr-text-muted);
+    letter-spacing : 0.03em;
+    line-height    : 1.2;
+  }
+  
+  .header__version {
+    font-family    : var(--font-mono);
+    font-size      : 10px;
+    color          : var(--clr-text-muted);
+    letter-spacing : 0.05em;
+  }
+  
+  /* ─── Feature card ───────────────────────────────────────────────────────── */
+  .feature-card {
+    padding       : var(--sp-3) var(--sp-4);
+    border-bottom : 1px solid var(--clr-border);
+    transition    : background var(--dur) var(--ease);
+  }
+  
+  .feature-card--dim {
+    opacity : 0.45;
+  }
+  
+  .feature-card__header {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+    gap             : var(--sp-3);
+  }
+  
+  .feature-card__name {
+    display      : block;
+    font-size    : 13px;
+    font-weight  : 500;
+    color        : var(--clr-text);
+    line-height  : 1.3;
+  }
+  
+  .feature-card__desc {
+    display      : block;
+    font-size    : 11px;
+    color        : var(--clr-text-2);
+    line-height  : 1.3;
+    margin-top   : 2px;
+  }
+  
+  /* ─── Toggle switch ──────────────────────────────────────────────────────── */
+  .toggle {
+    position     : relative;
+    width        : 40px;
+    height       : 22px;
+    flex-shrink  : 0;
+    cursor       : pointer;
+  }
+  
+  .toggle input {
+    opacity  : 0;
+    width    : 0;
+    height   : 0;
+    position : absolute;
+  }
+  
+  .toggle__track {
+    position      : absolute;
+    inset         : 0;
+    background    : var(--clr-border-2);
+    border-radius : 22px;
+    border        : 1px solid var(--clr-border-2);
+    transition    : background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+  }
+  
+  .toggle__thumb {
+    position      : absolute;
+    top           : 3px;
+    left          : 3px;
+    width         : 14px;
+    height        : 14px;
+    background    : var(--clr-text-muted);
+    border-radius : 50%;
+    transition    : transform var(--dur) var(--ease), background var(--dur) var(--ease),
+                    box-shadow var(--dur) var(--ease);
+  }
+  
+  /* Active state */
+  .toggle input:checked ~ .toggle__track {
+    background    : var(--clr-accent-dim);
+    border-color  : var(--clr-accent);
+  }
+  
+  .toggle input:checked ~ .toggle__thumb {
+    transform  : translateX(18px);
+    background : var(--clr-accent);
+    box-shadow : 0 0 8px var(--clr-accent-glow);
+  }
+  
+  /* Focus ring */
+  .toggle input:focus-visible ~ .toggle__track {
+    outline        : 2px solid var(--clr-accent);
+    outline-offset : 2px;
+  }
+  
+  /* ─── Settings panel ─────────────────────────────────────────────────────── */
+  .settings {
+    display        : flex;
+    flex-direction : column;
+    gap            : var(--sp-3);
+    margin-top     : var(--sp-3);
+    padding-top    : var(--sp-3);
+    border-top     : 1px solid var(--clr-border);
+  }
+  
+  .setting-row {
+    display        : flex;
+    flex-direction : column;
+    gap            : var(--sp-1);
+  }
+  
+  .setting-row__head {
+    display         : flex;
+    justify-content : space-between;
+    align-items     : baseline;
+  }
+  
+  .setting-row__label {
+    font-size      : 11px;
+    font-weight    : 500;
+    color          : var(--clr-text-2);
+    text-transform : uppercase;
+    letter-spacing : 0.08em;
+    cursor         : default;
+  }
+  
+  .setting-row__value {
+    font-family    : var(--font-mono);
+    font-size      : 11px;
+    color          : var(--clr-accent);
+    min-width      : 38px;
+    text-align     : right;
+  }
+  
+  /* ─── Slider ─────────────────────────────────────────────────────────────── */
+  .slider-track {
+    position : relative;
+  }
+  
+  input[type="range"] {
+    -webkit-appearance : none;
+    appearance         : none;
+    width              : 100%;
+    height             : 3px;
+    background         : var(--clr-border-2);
+    border-radius      : 3px;
+    outline            : none;
+    cursor             : pointer;
+    position           : relative;
+    z-index            : 1;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance : none;
+    appearance         : none;
+    width              : 15px;
+    height             : 15px;
+    background         : var(--clr-accent);
+    border-radius      : 50%;
+    cursor             : pointer;
+    transition         : transform var(--dur) var(--ease),
+                         box-shadow var(--dur) var(--ease);
+    box-shadow         : 0 0 0 0px var(--clr-accent-glow);
+  }
+  
+  input[type="range"]:hover::-webkit-slider-thumb,
+  input[type="range"]:focus::-webkit-slider-thumb {
+    transform  : scale(1.2);
+    box-shadow : 0 0 0 5px var(--clr-accent-glow);
+  }
+  
+  input[type="range"]::-moz-range-thumb {
+    width         : 15px;
+    height        : 15px;
+    border        : none;
+    background    : var(--clr-accent);
+    border-radius : 50%;
+    cursor        : pointer;
+  }
+  
+  .slider-legend {
+    display         : flex;
+    justify-content : space-between;
+    font-size       : 9px;
+    color           : var(--clr-text-muted);
+    letter-spacing  : 0.05em;
+    margin-top      : 2px;
+  }
+  
+  /* ─── Badge ──────────────────────────────────────────────────────────────── */
+  .badge {
+    font-family    : var(--font-mono);
+    font-size      : 9px;
+    font-weight    : 500;
+    letter-spacing : 0.08em;
+    text-transform : uppercase;
+    color          : var(--clr-text-muted);
+    background     : var(--clr-surface-2);
+    border         : 1px solid var(--clr-border-2);
+    border-radius  : var(--radius-xs);
+    padding        : 2px 6px;
+    flex-shrink    : 0;
+  }
+  
+  /* ─── Divider ────────────────────────────────────────────────────────────── */
+  .divider {
+    height     : 1px;
+    background : var(--clr-border);
+  }
+  
+  /* ─── Footer ─────────────────────────────────────────────────────────────── */
+  .footer {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+    padding         : var(--sp-2) var(--sp-4);
+    background      : var(--clr-surface);
+    border-top      : 1px solid var(--clr-border);
+  }
+  
+  .footer__status {
+    display     : flex;
+    align-items : center;
+    gap         : var(--sp-1);
+    font-size   : 10px;
+    color       : var(--clr-text-muted);
+    font-family : var(--font-mono);
+  }
+  
+  .footer__dot {
+    width         : 6px;
+    height        : 6px;
+    border-radius : 50%;
+    background    : var(--clr-text-muted);
+    transition    : background var(--dur) var(--ease);
+  }
+  
+  .footer__dot--active {
+    background : var(--clr-accent);
+    animation  : dot-pulse 2.4s var(--ease) infinite;
+  }
+  
+  @keyframes dot-pulse {
+    0%, 100% { opacity: 1;    transform: scale(1); }
+    50%       { opacity: 0.35; transform: scale(0.7); }
+  }
+  
+  .footer__page {
+    font-family    : var(--font-mono);
+    font-size      : 9px;
+    color          : var(--clr-text-muted);
+    letter-spacing : 0.04em;
+    max-width      : 140px;
+    overflow       : hidden;
+    text-overflow  : ellipsis;
+    white-space    : nowrap;
+  }

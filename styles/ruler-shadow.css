@@ -1,0 +1,114 @@
+/*
+ * ProjectOtter — styles/ruler-shadow.css
+ *
+ * These styles are injected into a CLOSED Shadow DOM, not the host page.
+ * Every rule here is fully isolated — host CSS cannot override these,
+ * and these cannot leak out to affect the host page.
+ *
+ * The entire visual effect is driven by CSS custom properties set by
+ * focus-ruler.js. JavaScript never writes layout values directly.
+ *
+ * CSS Variable API (set by focus-ruler.js):
+ *   --ruler-y        Current vertical center of the ruler strip (px)
+ *   --ruler-height   Height of the transparent reading strip (px)
+ *   --dim-opacity    Opacity of the dimmed regions above and below (0–1)
+ *   --vw             Current viewport width (updated on resize)
+ *   --vh             Current viewport height (updated on resize)
+ */
+
+/* ─── Shadow host reset ──────────────────────────────────────────────────── */
+/* :host targets the shadow host div appended to document.body              */
+:host {
+    all            : initial;  /* Block ALL inherited styles from host page */
+    display        : block;
+    position       : fixed;
+    inset          : 0;
+    width          : 0;        /* Host has no size — only the overlay child paints */
+    height         : 0;
+    pointer-events : none;
+    z-index        : 2147483647; /* Max 32-bit signed int — paints above everything */
+  }
+  
+  /* ─── Main overlay ───────────────────────────────────────────────────────── */
+  .ruler-overlay {
+    position       : fixed;
+    inset          : 0;
+    width          : var(--vw, 100vw);
+    height         : var(--vh, 100vh);
+    pointer-events : none;
+  
+    /*
+     * The masking technique: a single-element linear-gradient with HARD STOPS.
+     *
+     * Three zones, top to bottom:
+     *   1. Opaque dim region    → from 0 to (ruler center - half height)
+     *   2. Transparent strip    → the "reading window"
+     *   3. Opaque dim region    → from (ruler center + half height) to 100%
+     *
+     * Hard stops (same value repeated) create a crisp edge with zero blur.
+     * This is rendered entirely by the GPU — no layout recalculation occurs
+     * when --ruler-y changes, only a repaint of the background layer.
+     */
+    background: linear-gradient(
+      to bottom,
+  
+      /* ── Top dim region ── */
+      rgba(0, 0, 0, var(--dim-opacity, 0.75)) 0px,
+      rgba(0, 0, 0, var(--dim-opacity, 0.75))
+        calc(var(--ruler-y, 50vh) - var(--ruler-height, 40px) / 2),
+  
+      /* ── Transparent reading strip ── */
+      transparent
+        calc(var(--ruler-y, 50vh) - var(--ruler-height, 40px) / 2),
+      transparent
+        calc(var(--ruler-y, 50vh) + var(--ruler-height, 40px) / 2),
+  
+      /* ── Bottom dim region ── */
+      rgba(0, 0, 0, var(--dim-opacity, 0.75))
+        calc(var(--ruler-y, 50vh) + var(--ruler-height, 40px) / 2),
+      rgba(0, 0, 0, var(--dim-opacity, 0.75)) 100%
+    );
+  
+    /* Promote to its own compositor layer for smoother repaints */
+    will-change : background;
+  }
+  
+  /* ─── Ruler edge accent lines ────────────────────────────────────────────── */
+  /*
+   * Two 1px amber lines mark the top and bottom edges of the reading strip.
+   * They use the same CSS variables as the gradient — perfectly aligned at
+   * zero additional JavaScript cost.
+   */
+  .ruler-overlay::before,
+  .ruler-overlay::after {
+    content        : '';
+    position       : absolute;
+    left           : 0;
+    width          : 100%;
+    height         : 1px;
+    pointer-events : none;
+  
+    /* Amber accent — matches the popup UI design token --clr-accent */
+    background     : rgba(245, 200, 66, 0.5);
+  
+    /* Soft glow effect on the guide lines */
+    box-shadow     : 0 0 6px 1px rgba(245, 200, 66, 0.2);
+  }
+  
+  /* Top edge line */
+  .ruler-overlay::before {
+    top : calc(var(--ruler-y, 50vh) - var(--ruler-height, 40px) / 2);
+  }
+  
+  /* Bottom edge line */
+  .ruler-overlay::after {
+    top : calc(var(--ruler-y, 50vh) + var(--ruler-height, 40px) / 2);
+  }
+  
+  /* ─── Reduced motion: disable edge line glow ─────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    .ruler-overlay::before,
+    .ruler-overlay::after {
+      box-shadow : none;
+    }
+  }
