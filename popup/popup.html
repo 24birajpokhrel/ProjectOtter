@@ -57,7 +57,39 @@
                     </button>
                     <div class="accordion-content">
                         <div class="teammate-zone">
-                            <p><i>[Teammate 3: Color Blindness UI goes here]</i></p>
+                            <p class="cb-section-title">Select a color blindness mode:</p>
+
+                            <label class="cb-option">
+                                <input type="radio" name="cb-mode" value="none" checked>
+                                <span class="cb-label">
+                <strong>None</strong>
+                <small>Default — no filter applied</small>
+            </span>
+                            </label>
+
+                            <label class="cb-option">
+                                <input type="radio" name="cb-mode" value="protanopia">
+                                <span class="cb-label">
+                <strong>Protanopia</strong>
+                <small>Red-green — no red cone</small>
+            </span>
+                            </label>
+
+                            <label class="cb-option">
+                                <input type="radio" name="cb-mode" value="deuteranopia">
+                                <span class="cb-label">
+                <strong>Deuteranopia</strong>
+                <small>Red-green — no green cone</small>
+            </span>
+                            </label>
+
+                            <label class="cb-option">
+                                <input type="radio" name="cb-mode" value="tritanopia">
+                                <span class="cb-label">
+                <strong>Tritanopia</strong>
+                <small>Blue-yellow — no blue cone</small>
+            </span>
+                            </label>
                         </div>
                     </div>
                 </div>

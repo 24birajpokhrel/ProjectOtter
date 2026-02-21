@@ -25,6 +25,17 @@
     "default_icon": "assets/icons/logo.png" 
   },
 
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "utils/storage-helper.js",
+        "content-scripts/visual-filters.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+
   "icons": { 
     "128": "assets/icons/logo.png" 
   } 
