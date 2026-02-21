@@ -5,10 +5,10 @@
   "description": "Educational accessibility tools including color overlays, reading masks, and typography adjustments for students.",
 
   "permissions": [
-    "activeTab",  
-    "scripting",  
-    "storage",    
-    "tabs"        
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
   ],
 
   "host_permissions": [
@@ -21,6 +21,11 @@
 
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "Open Project Otter"
-  }
+    "default_title": "Open Project Otter",
+    "default_icon": "assets/icons/logo.png" 
+  },
+
+  "icons": { 
+    "128": "assets/icons/logo.png" 
+  } 
 }
