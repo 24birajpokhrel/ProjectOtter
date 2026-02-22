@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AccessiLens – Visual Accessibility",
   "version": "1.0.0",
-  "description": "Color overlays, dark mode, and colorblindness filters.",
+  "description": "Color overlays, dark mode, and colorblindness filters for students with dyslexia, ADHD, and color vision deficiency.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -21,16 +21,13 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": [
-        "ColorBlindness/content.js", 
-        "content.js"
-      ],
+      "js": ["content.js"],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["fonts/*.ttf", "fonts/*.otf"],
+      "resources": ["fonts/*.ttf"],
       "matches": ["<all_urls>"]
     }
   ]

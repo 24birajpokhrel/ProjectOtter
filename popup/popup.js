@@ -13,7 +13,7 @@ let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
 const toggleOverlay   = document.getElementById('toggle-overlay');
 const toggleDark      = document.getElementById('toggle-dark');
 const toggleCB        = document.getElementById('toggle-cb');
-const toggleDyslexia  = document.getElementById('toggle-dyslexia')
+const toggleDyslexia  = document.getElementById('toggle-dyslexia');
 
 const bodyOverlay     = document.getElementById('body-overlay');
 const bodyDark        = document.getElementById('body-dark');
@@ -39,12 +39,15 @@ const previewStrip    = document.getElementById('previewStrip');
 
 // Utility
 function sendState() {
-  chrome.runtime.sendMessage({ type: 'SET_STATE', state });
+  // Catch the error if the background script isn't ready yet
+  chrome.runtime.sendMessage({ type: 'SET_STATE', state }).catch(() => {});
   
-  // ALSO send directly to the active tab to ensure immediate application
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs[0]) {
-      chrome.tabs.sendMessage(tabs[0].id, { type: 'SET_STATE', state });
+    if (tabs[0] && tabs[0].id) {
+      chrome.tabs.sendMessage(tabs[0].id, { type: 'SET_STATE', state })
+        .catch((error) => {
+          console.log("Tab not ready for messages yet. Try refreshing the page.");
+        });
     }
   });
 
@@ -154,7 +157,7 @@ toggleDyslexia.addEventListener('change', () => {
 // Dyslexia Font Dropdown
 fontSelect.addEventListener('change', (e) => {
   state.dyslexia.font = e.target.value;
-  
+
   if (state.dyslexia.font !== 'default' && !state.dyslexia.enabled) {
     state.dyslexia.enabled = true;
     toggleDyslexia.checked = true;
