@@ -1,35 +1,38 @@
 /*
- * ProjectOtter — styles/ruler-shadow.css
+ * AccessiLens — styles/ruler-shadow.css
  *
- * These styles are injected into a CLOSED Shadow DOM, not the host page.
- * Every rule here is fully isolated — host CSS cannot override these,
- * and these cannot leak out to affect the host page.
+ * Injected into a CLOSED Shadow DOM by focus-ruler.js.
+ * Host page CSS cannot override these rules.
+ * These rules cannot leak out to the host page.
  *
- * The entire visual effect is driven by CSS custom properties set by
- * focus-ruler.js. JavaScript never writes layout values directly.
+ * !! IMPORTANT — DUAL COPY WARNING !!
+ * The CSS in this file is ALSO inlined as a string inside the getRulerCSS()
+ * function in content-scripts/focus-ruler.js (pre-bundler pattern).
+ * If you change anything here, change it there too. They must stay identical.
+ * Post-bundler: focus-ruler.js will import this file via esbuild text loader,
+ * eliminating the duplicate.
  *
- * CSS Variable API (set by focus-ruler.js):
- *   --ruler-y        Current vertical center of the ruler strip (px)
- *   --ruler-height   Height of the transparent reading strip (px)
- *   --dim-opacity    Opacity of the dimmed regions above and below (0–1)
- *   --vw             Current viewport width (updated on resize)
- *   --vh             Current viewport height (updated on resize)
+ * CSS Variable API (all set by focus-ruler.js via setVar()):
+ *   --ruler-y        Vertical center of reading strip (px)
+ *   --ruler-height   Height of transparent window (px)
+ *   --dim-opacity    Opacity of dimmed regions, 0.0–1.0
+ *   --vw             Viewport width (updated on resize)
+ *   --vh             Viewport height (updated on resize)
  */
 
-/* ─── Shadow host reset ──────────────────────────────────────────────────── */
-/* :host targets the shadow host div appended to document.body              */
+/* ── Shadow host reset ───────────────────────────────────────────────────── */
 :host {
-    all            : initial;  /* Block ALL inherited styles from host page */
+    all            : initial;
     display        : block;
     position       : fixed;
     inset          : 0;
-    width          : 0;        /* Host has no size — only the overlay child paints */
+    width          : 0;      /* Host has no size — overlay child does the painting */
     height         : 0;
     pointer-events : none;
-    z-index        : 2147483647; /* Max 32-bit signed int — paints above everything */
+    z-index        : 2147483647;
   }
   
-  /* ─── Main overlay ───────────────────────────────────────────────────────── */
+  /* ── Main overlay ─────────────────────────────────────────────────────────── */
   .ruler-overlay {
     position       : fixed;
     inset          : 0;
@@ -38,47 +41,34 @@
     pointer-events : none;
   
     /*
-     * The masking technique: a single-element linear-gradient with HARD STOPS.
+     * Single-element gradient masking — three zones with HARD STOPS.
+     * Rendering is GPU-only: changing --ruler-y causes a repaint, not a layout.
      *
-     * Three zones, top to bottom:
-     *   1. Opaque dim region    → from 0 to (ruler center - half height)
-     *   2. Transparent strip    → the "reading window"
-     *   3. Opaque dim region    → from (ruler center + half height) to 100%
-     *
-     * Hard stops (same value repeated) create a crisp edge with zero blur.
-     * This is rendered entirely by the GPU — no layout recalculation occurs
-     * when --ruler-y changes, only a repaint of the background layer.
+     * Zone 1: opaque dim  →  0px to (center - height/2)
+     * Zone 2: transparent →  the reading window
+     * Zone 3: opaque dim  →  (center + height/2) to 100%
      */
     background: linear-gradient(
       to bottom,
   
-      /* ── Top dim region ── */
       rgba(0, 0, 0, var(--dim-opacity, 0.75)) 0px,
       rgba(0, 0, 0, var(--dim-opacity, 0.75))
         calc(var(--ruler-y, 50vh) - var(--ruler-height, 40px) / 2),
   
-      /* ── Transparent reading strip ── */
       transparent
         calc(var(--ruler-y, 50vh) - var(--ruler-height, 40px) / 2),
       transparent
         calc(var(--ruler-y, 50vh) + var(--ruler-height, 40px) / 2),
   
-      /* ── Bottom dim region ── */
       rgba(0, 0, 0, var(--dim-opacity, 0.75))
         calc(var(--ruler-y, 50vh) + var(--ruler-height, 40px) / 2),
       rgba(0, 0, 0, var(--dim-opacity, 0.75)) 100%
     );
   
-    /* Promote to its own compositor layer for smoother repaints */
     will-change : background;
   }
   
-  /* ─── Ruler edge accent lines ────────────────────────────────────────────── */
-  /*
-   * Two 1px amber lines mark the top and bottom edges of the reading strip.
-   * They use the same CSS variables as the gradient — perfectly aligned at
-   * zero additional JavaScript cost.
-   */
+  /* ── Edge accent lines ───────────────────────────────────────────────────── */
   .ruler-overlay::before,
   .ruler-overlay::after {
     content        : '';
@@ -87,25 +77,19 @@
     width          : 100%;
     height         : 1px;
     pointer-events : none;
-  
-    /* Amber accent — matches the popup UI design token --clr-accent */
-    background     : rgba(245, 200, 66, 0.5);
-  
-    /* Soft glow effect on the guide lines */
+    background     : rgba(245, 200, 66, 0.5);   /* Amber — matches --clr-accent */
     box-shadow     : 0 0 6px 1px rgba(245, 200, 66, 0.2);
   }
   
-  /* Top edge line */
   .ruler-overlay::before {
     top : calc(var(--ruler-y, 50vh) - var(--ruler-height, 40px) / 2);
   }
   
-  /* Bottom edge line */
   .ruler-overlay::after {
     top : calc(var(--ruler-y, 50vh) + var(--ruler-height, 40px) / 2);
   }
   
-  /* ─── Reduced motion: disable edge line glow ─────────────────────────────── */
+  /* ── Reduced motion ──────────────────────────────────────────────────────── */
   @media (prefers-reduced-motion: reduce) {
     .ruler-overlay::before,
     .ruler-overlay::after {
