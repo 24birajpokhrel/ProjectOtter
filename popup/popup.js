@@ -39,20 +39,23 @@ const previewStrip    = document.getElementById('previewStrip');
 
 // Utility
 function sendState() {
-  // Catch the error if the background script isn't ready yet
+  // Save to Chrome's persistent memory immediately
+  chrome.storage.sync.set({ accessiLensState: state });
+
   chrome.runtime.sendMessage({ type: 'SET_STATE', state }).catch(() => {});
   
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs[0] && tabs[0].id) {
-      chrome.tabs.sendMessage(tabs[0].id, { type: 'SET_STATE', state })
-        .catch((error) => {
-          console.log("Tab not ready for messages yet. Try refreshing the page.");
-        });
+  chrome.tabs.query({}, (tabs) => {
+    for (let tab of tabs) {
+      // Only send to actual web pages, ignore hidden Chrome settings pages
+      if (tab.url && !tab.url.startsWith("chrome://")) {
+        chrome.tabs.sendMessage(tab.id, { type: 'SET_STATE', state })
+          .catch((error) => {
+          });
+      }
     }
   });
 
   updateUI();
-  chrome.storage.sync.set({ accessiLensState: state });
 }
 
 function updateUI() {
