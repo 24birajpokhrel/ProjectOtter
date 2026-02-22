@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Otter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="popup.css"/>
+</head>
+<body>
+
+  <!-- ── Header (ProjectOtter branding) ── -->
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-circle">🦦</div>
+      <div class="logo-text">
+        <span class="logo-title">Project Otter</span>
+        <span class="logo-sub">accessibility toolkit</span>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="active-badge hidden" id="activeBadge">● active</span>
+    </div>
+  </div>
+
+  <!-- ── Preview bar ── -->
+  <div class="preview-bar" id="previewBar"></div>
+
+  <!-- ── Accordion sections ── -->
+  <div class="accordion">
+
+    <!-- ─── ADHD SECTION ─── -->
+    <div class="accordion-item" id="section-adhd">
+      <button class="accordion-header" data-section="adhd">
+        <div class="accordion-header__left">
+          <span class="accordion-icon">🧠</span>
+          <div>
+            <span class="accordion-label">ADHD</span>
+            <span class="accordion-desc">Focus &amp; distraction tools</span>
+          </div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <div class="accordion-content hidden" id="content-adhd">
+
+        <!-- Focus Ruler -->
+        <div class="feature-card" id="card-ruler">
+          <div class="feature-card__header">
+            <div class="feature-card__info">
+              <span class="feature-card__name">Focus Ruler</span>
+              <span class="feature-card__desc">Reading mask that follows your cursor</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="rulerToggle" role="switch" aria-label="Enable Focus Ruler"/>
+              <span class="toggle__track"></span>
+              <span class="toggle__thumb"></span>
+            </label>
+          </div>
+
+          <div class="feature-card__body hidden" id="body-ruler">
+            <div class="setting-row">
+              <div class="setting-row__head">
+                <label class="setting-row__label" for="heightRange">Strip Height</label>
+                <span class="setting-row__value" id="heightOutput">40 px</span>
+              </div>
+              <input type="range" id="heightRange" min="16" max="140" value="40" step="2"/>
+              <div class="slider-legend"><span>Narrow</span><span>Wide</span></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-row__head">
+                <label class="setting-row__label" for="opacityRange">Dim Intensity</label>
+                <span class="setting-row__value" id="opacityOutput">75%</span>
+              </div>
+              <input type="range" id="opacityRange" min="10" max="95" value="75" step="5"/>
+              <div class="slider-legend"><span>Light</span><span>Dark</span></div>
+            </div>
+            <div class="kbd-hint">
+              <kbd>Alt</kbd><kbd>Shift</kbd><kbd>R</kbd>
+              <span>keyboard shortcut</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /content-adhd -->
+    </div>
+
+    <!-- ─── DYSLEXIA SECTION ─── -->
+    <div class="accordion-item" id="section-dyslexia">
+      <button class="accordion-header" data-section="dyslexia">
+        <div class="accordion-header__left">
+          <span class="accordion-icon">📖</span>
+          <div>
+            <span class="accordion-label">Dyslexia</span>
+            <span class="accordion-desc">Font &amp; typography tools</span>
+          </div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <div class="accordion-content hidden" id="content-dyslexia">
+
+        <!-- Color Overlay (helps dyslexia) -->
+        <div class="feature-card" id="card-overlay">
+          <div class="feature-card__header">
+            <div class="feature-card__info">
+              <span class="feature-card__name">Color Overlay</span>
+              <span class="feature-card__desc">Tint that reduces visual stress &amp; glare</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="overlayToggle" role="switch" aria-label="Enable Color Overlay"/>
+              <span class="toggle__track"></span>
+              <span class="toggle__thumb"></span>
+            </label>
+          </div>
+
+          <div class="feature-card__body hidden" id="body-overlay">
+            <div class="setting-row">
+              <div class="setting-row__head">
+                <span class="setting-row__label">Tint Color</span>
+              </div>
+              <div class="swatch-grid" id="swatchGrid" role="radiogroup" aria-label="Tint color">
+                <button class="swatch selected" data-color="#ffff99" style="background:#ffff99;" title="Soft Yellow" role="radio" aria-checked="true"></button>
+                <button class="swatch" data-color="#c8e6ff" style="background:#c8e6ff;" title="Sky Blue"   role="radio" aria-checked="false"></button>
+                <button class="swatch" data-color="#d4f4dd" style="background:#d4f4dd;" title="Mint Green" role="radio" aria-checked="false"></button>
+                <button class="swatch" data-color="#ffd6e8" style="background:#ffd6e8;" title="Rose Pink"  role="radio" aria-checked="false"></button>
+                <button class="swatch" data-color="#e8d5ff" style="background:#e8d5ff;" title="Lavender"   role="radio" aria-checked="false"></button>
+                <button class="swatch" data-color="#ffe0c0" style="background:#ffe0c0;" title="Peach"      role="radio" aria-checked="false"></button>
+                <label class="swatch swatch--custom" title="Custom color">
+                  <span aria-hidden="true">+</span>
+                  <input type="color" id="customColor" value="#ffff99" aria-label="Custom tint color"/>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-row__head">
+                <label class="setting-row__label" for="overlayOpacityRange">Strength</label>
+                <span class="setting-row__value" id="overlayOpacityOutput">15%</span>
+              </div>
+              <input type="range" id="overlayOpacityRange" min="5" max="50" value="15" step="1"/>
+              <div class="slider-legend"><span>Subtle</span><span>Strong</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dyslexia Font — teammate zone -->
+        <div class="feature-card teammate-zone" id="card-dyslexia-font">
+          <div class="feature-card__header">
+            <div class="feature-card__info">
+              <span class="feature-card__name">Dyslexia-Friendly Font</span>
+              <span class="feature-card__desc">Switches page font to OpenDyslexic</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="dyslexiaFontToggle" role="switch" aria-label="Enable Dyslexia Font"/>
+              <span class="toggle__track"></span>
+              <span class="toggle__thumb"></span>
+            </label>
+          </div>
+          <!-- Teammate 1 — add your controls inside feature-card__body below -->
+          <div class="feature-card__body hidden" id="body-dyslexia">
+            <p class="teammate-placeholder">[ Teammate 1: Add font controls here ]</p>
+          </div>
+        </div>
+
+        <!-- Text Scale — teammate zone -->
+        <div class="feature-card teammate-zone" id="card-text-scale">
+          <div class="feature-card__header">
+            <div class="feature-card__info">
+              <span class="feature-card__name">Text Scale</span>
+              <span class="feature-card__desc">Adjusts font size across the page</span>
+            </div>
+          </div>
+          <div class="feature-card__body" id="body-text-scale">
+            <div class="setting-row">
+              <div class="setting-row__head">
+                <label class="setting-row__label" for="textScaleRange">Size</label>
+                <span class="setting-row__value" id="textScaleOutput">100%</span>
+              </div>
+              <input type="range" id="textScaleRange" min="50" max="200" value="100" step="5"/>
+              <div class="slider-legend"><span>Smaller</span><span>Larger</span></div>
+            </div>
+            <!-- Teammate 1 — add additional controls here -->
+            <p class="teammate-placeholder">[ Teammate 1: Add typography controls here ]</p>
+          </div>
+        </div>
+
+      </div><!-- /content-dyslexia -->
+    </div>
+
+    <!-- ─── COLOR BLINDNESS SECTION ─── -->
+    <div class="accordion-item" id="section-colorblind">
+      <button class="accordion-header" data-section="colorblind">
+        <div class="accordion-header__left">
+          <span class="accordion-icon">🎨</span>
+          <div>
+            <span class="accordion-label">Color Blindness</span>
+            <span class="accordion-desc">Visual filter &amp; dark mode</span>
+          </div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <div class="accordion-content hidden" id="content-colorblind">
+
+        <!-- Dark Mode -->
+        <div class="feature-card" id="card-dark">
+          <div class="feature-card__header">
+            <div class="feature-card__info">
+              <span class="feature-card__name">Dark Mode</span>
+              <span class="feature-card__desc">Reduces eye strain in low light</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="darkToggle" role="switch" aria-label="Enable Dark Mode"/>
+              <span class="toggle__track"></span>
+              <span class="toggle__thumb"></span>
+            </label>
+          </div>
+          <div class="feature-card__body hidden" id="body-dark">
+            <p class="feature-card__note">Converts bright white backgrounds to dark surfaces. Best in dim environments.</p>
+          </div>
+        </div>
+
+        <!-- CVD Filter -->
+        <div class="feature-card" id="card-cvd">
+          <div class="feature-card__header">
+            <div class="feature-card__info">
+              <span class="feature-card__name">Colorblindness Filter</span>
+              <span class="feature-card__desc">SVG matrix filter for CVD simulation</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="cvdToggle" role="switch" aria-label="Enable Colorblindness Filter"/>
+              <span class="toggle__track"></span>
+              <span class="toggle__thumb"></span>
+            </label>
+          </div>
+          <div class="feature-card__body hidden" id="body-cvd">
+            <div class="setting-row">
+              <p class="chip-group-label">🔴 Red-Green</p>
+              <div class="chip-group" role="radiogroup" aria-label="CVD filter type">
+                <button class="chip" data-mode="protanopia"   role="radio" aria-checked="false">Protanopia <span class="chip__sub">no red</span></button>
+                <button class="chip" data-mode="deuteranopia" role="radio" aria-checked="false">Deuteranopia <span class="chip__sub">no green</span></button>
+              </div>
+              <p class="chip-group-label" style="margin-top:8px;">🔵 Blue-Yellow</p>
+              <div class="chip-group">
+                <button class="chip" data-mode="tritanopia" role="radio" aria-checked="false">Tritanopia <span class="chip__sub">no blue</span></button>
+              </div>
+              <div class="feature-card__warning">
+                ⚠ Filters simulate CVD for accessibility testing, not vision correction.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /content-colorblind -->
+    </div>
+
+  </div><!-- /accordion -->
+
+  <!-- ── Footer ── -->
+  <div class="footer">
+    <div class="footer__status">
+      <span class="footer__dot" id="statusDot"></span>
+      <span class="footer__text" id="statusText">No features active</span>
+    </div>
+    <div class="footer__right">
+      <span class="footer__page" id="footerPage"></span>
+      <button class="reset-btn" id="resetBtn">Reset all</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

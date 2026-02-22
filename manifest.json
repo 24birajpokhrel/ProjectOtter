@@ -1,24 +1,23 @@
 {
   "manifest_version": 3,
-
-  "name"        : "AccessiLens – Visual Accessibility",
-  "short_name"  : "AccessiLens",
-  "version"     : "1.0.0",
-  "description" : "Color overlays, dark mode, colorblindness filters, and focus reading tools for students with dyslexia, ADHD, and color vision deficiency.",
+  "name": "Project Otter",
+  "short_name": "ProjectOtter",
+  "version": "1.0.0",
+  "description": "Educational accessibility tools for students with dyslexia, ADHD, and colorblindness.",
 
   "icons": {
-    "16"  : "assets/icons/icon16.png",
-    "48"  : "assets/icons/icon48.png",
-    "128" : "assets/icons/icon128.png"
+    "16": "assets/icons/logo.png",
+    "48": "assets/icons/logo.png",
+    "128": "assets/icons/logo.png"
   },
 
   "action": {
-    "default_popup" : "popup/popup.html",
-    "default_title"  : "AccessiLens",
+    "default_popup": "popup/popup.html",
+    "default_title": "Open Project Otter",
     "default_icon": {
-      "16"  : "assets/icons/icon16.png",
-      "48"  : "assets/icons/icon48.png",
-      "128" : "assets/icons/icon128.png"
+      "16": "assets/icons/logo.png",
+      "48": "assets/icons/logo.png",
+      "128": "assets/icons/logo.png"
     }
   },
 
@@ -35,19 +34,18 @@
 
   "content_scripts": [
     {
-      "matches"    : ["<all_urls>"],
-      "js"         : [
+      "matches": ["<all_urls>"],
+      "js": [
         "utils/storage-helper.js",
         "content-scripts/focus-ruler.js",
-        "content-scripts/typography-engine.js",
-        "content-scripts/visual-filters.js"
+        "content-scripts/visual-filters.js",
+        "content-scripts/typography.js"
       ],
-      "css"        : [
-        "styles/global.css",
-        "styles/content.css"
+      "css": [
+        "styles/global.css"
       ],
-      "run_at"     : "document_idle",
-      "all_frames" : false
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ],
 
@@ -57,32 +55,12 @@
 
   "web_accessible_resources": [
     {
-      "resources" : [
-        "styles/ruler-shadow.css",
+      "resources": [
         "styles/global.css",
-        "styles/content.css",
-        "assets/icons/icon16.png",
-        "assets/icons/icon48.png",
-        "assets/icons/icon128.png"
+        "styles/ruler-shadow.css",
+        "assets/icons/logo.png"
       ],
-      "matches" : ["<all_urls>"]
+      "matches": ["<all_urls>"]
     }
-  ],
-
-  "commands": {
-    "toggle-focus-ruler": {
-      "suggested_key": {
-        "default" : "Alt+Shift+R",
-        "mac"     : "Alt+Shift+R"
-      },
-      "description": "Toggle Focus Ruler on/off"
-    },
-    "toggle-color-overlay": {
-      "suggested_key": {
-        "default" : "Alt+Shift+C",
-        "mac"     : "Alt+Shift+C"
-      },
-      "description": "Toggle color overlay on/off"
-    }
-  }
+  ]
 }
