@@ -60,7 +60,8 @@
       "resources": [
         "styles/global.css",
         "styles/ruler-shadow.css",
-        "assets/icons/logo.png"
+        "assets/icons/logo.png",
+        "assets/icons/fonts/OpenDyslexic3-Regular.ttf"
       ],
       "matches": ["<all_urls>"]
     }

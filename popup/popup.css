@@ -1,10 +1,6 @@
 /*
- * Project Otter — popup/popup.css
- *
- * Merged design system:
- *   - Header: ProjectOtter branding (otter, brown palette, blue logo pill)
- *   - Feature cards: AccessiLens dark system (amber accent, DM Sans/Mono)
- *   - Accordion: ProjectOtter structure + AccessiLens styling
+ * Project Otter — Definitive popup.css
+ * Combined design system: Otter Branding + AccessiLens Dark System
  */
 
 /* ─── Google Fonts fallback ──────────────────────────────────────────────── */
@@ -54,8 +50,21 @@
   --dur  : 150ms;
 }
 
-/* ─── Reset ──────────────────────────────────────────────────────────────── */
+/* ─── Reset & Scrollbar ─────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::selection {
+  background: var(--clr-accent);
+  color: var(--clr-bg);
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--clr-bg); }
+::-webkit-scrollbar-thumb { 
+  background: var(--clr-border-2); 
+  border-radius: 10px; 
+}
+::-webkit-scrollbar-thumb:hover { background: var(--clr-accent-muted); }
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
 body {
@@ -66,7 +75,7 @@ body {
   font-size              : 13px;
   line-height            : 1.5;
   -webkit-font-smoothing : antialiased;
-  overflow               : hidden;
+  overflow-x             : hidden;
   user-select            : none;
 }
 
@@ -88,6 +97,7 @@ body {
   flex-grow     : 1;
   margin-right  : var(--sp-3);
   gap           : var(--sp-3);
+  box-shadow    : 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .logo-circle {
@@ -128,6 +138,7 @@ body {
   font-size      : 10px;
   color          : var(--clr-accent);
   letter-spacing : 0.05em;
+  text-shadow    : 0 0 8px var(--clr-accent-glow);
   animation      : dot-pulse 2.4s var(--ease) infinite;
 }
 .active-badge.hidden { display: none; }
@@ -159,11 +170,12 @@ body {
   border        : 1px solid var(--clr-border);
   border-radius : var(--radius);
   overflow      : hidden;
-  transition    : border-color var(--dur) var(--ease);
+  transition    : border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
 
 .accordion-item.has-active {
   border-color : var(--clr-accent);
+  box-shadow   : inset 0 0 12px var(--clr-accent-dim);
 }
 
 /* ─── Accordion header ───────────────────────────────────────────────────── */
@@ -179,9 +191,11 @@ body {
   color           : var(--clr-text);
   font-family     : var(--font-sans);
   text-align      : left;
+  outline         : none;
 }
 
 .accordion-header:hover { background: rgba(255,255,255,0.02); }
+.accordion-header:focus-visible { background: rgba(255,255,255,0.05); }
 
 .accordion-header__left {
   display     : flex;
@@ -231,6 +245,7 @@ body {
   gap            : var(--sp-2);
   border-top     : 1px solid var(--clr-border);
   padding-top    : var(--sp-2);
+  background     : rgba(0,0,0,0.1);
   animation      : contentSlideIn 0.18s var(--ease);
 }
 
@@ -247,7 +262,7 @@ body {
   border        : 1px solid var(--clr-border);
   border-radius : var(--radius-sm);
   overflow      : hidden;
-  transition    : border-color var(--dur) var(--ease);
+  transition    : border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 
 .feature-card.active {
@@ -255,7 +270,6 @@ body {
   box-shadow   : 0 0 0 1px var(--clr-accent-dim);
 }
 
-/* Teammate zone: dashed border so it's visually distinct */
 .feature-card.teammate-zone {
   border-style : dashed;
   opacity      : 0.85;
@@ -365,6 +379,11 @@ body {
 
 .toggle input:focus-visible ~ .toggle__track {
   outline: 2px solid var(--clr-accent); outline-offset: 2px;
+}
+
+.toggle input:disabled ~ .toggle__track {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ─── Setting row ────────────────────────────────────────────────────────── */
