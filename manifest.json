@@ -25,7 +25,8 @@
     "storage",
     "activeTab",
     "scripting",
-    "tabs"
+    "tabs",
+    "tts"
   ],
 
   "host_permissions": [
@@ -43,7 +44,8 @@
         "utils/storage-helper.js",
         "content-scripts/focus-ruler.js",
         "content-scripts/visual-filters.js",
-        "content-scripts/typography.js"
+        "content-scripts/typography.js",
+        "content-scripts/tts-engine.js"
       ],
       "css": [
         "styles/global.css"
