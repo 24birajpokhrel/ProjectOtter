@@ -10,7 +10,6 @@
 </head>
 <body>
 
-  <!-- ── Header (ProjectOtter branding) ── -->
   <div class="header">
     <div class="logo-area">
       <div class="logo-circle">🦦</div>
@@ -24,13 +23,10 @@
     </div>
   </div>
 
-  <!-- ── Preview bar ── -->
   <div class="preview-bar" id="previewBar"></div>
 
-  <!-- ── Accordion sections ── -->
   <div class="accordion">
 
-    <!-- ─── ADHD SECTION ─── -->
     <div class="accordion-item" id="section-adhd">
       <button class="accordion-header" data-section="adhd">
         <div class="accordion-header__left">
@@ -47,7 +43,6 @@
 
       <div class="accordion-content hidden" id="content-adhd">
 
-        <!-- Focus Ruler -->
         <div class="feature-card" id="card-ruler">
           <div class="feature-card__header">
             <div class="feature-card__info">
@@ -85,10 +80,8 @@
           </div>
         </div>
 
-      </div><!-- /content-adhd -->
-    </div>
+      </div></div>
 
-    <!-- ─── DYSLEXIA SECTION ─── -->
     <div class="accordion-item" id="section-dyslexia">
       <button class="accordion-header" data-section="dyslexia">
         <div class="accordion-header__left">
@@ -105,7 +98,6 @@
 
       <div class="accordion-content hidden" id="content-dyslexia">
 
-        <!-- Color Overlay (helps dyslexia) -->
         <div class="feature-card" id="card-overlay">
           <div class="feature-card__header">
             <div class="feature-card__info">
@@ -148,7 +140,6 @@
           </div>
         </div>
 
-        <!-- Dyslexia Font — teammate zone -->
         <div class="feature-card teammate-zone" id="card-dyslexia-font">
           <div class="feature-card__header">
             <div class="feature-card__info">
@@ -161,38 +152,24 @@
               <span class="toggle__thumb"></span>
             </label>
           </div>
-          <!-- Teammate 1 — add your controls inside feature-card__body below -->
           <div class="feature-card__body hidden" id="body-dyslexia">
-            <p class="teammate-placeholder">[ Teammate 1: Add font controls here ]</p>
-          </div>
-        </div>
-
-        <!-- Text Scale — teammate zone -->
-        <div class="feature-card teammate-zone" id="card-text-scale">
-          <div class="feature-card__header">
-            <div class="feature-card__info">
-              <span class="feature-card__name">Text Scale</span>
-              <span class="feature-card__desc">Adjusts font size across the page</span>
-            </div>
-          </div>
-          <div class="feature-card__body" id="body-text-scale">
             <div class="setting-row">
               <div class="setting-row__head">
-                <label class="setting-row__label" for="textScaleRange">Size</label>
-                <span class="setting-row__value" id="textScaleOutput">100%</span>
+                <label class="setting-row__label" for="fontSelect">Font Family</label>
               </div>
-              <input type="range" id="textScaleRange" min="50" max="200" value="100" step="5"/>
-              <div class="slider-legend"><span>Smaller</span><span>Larger</span></div>
+              <select id="fontSelect" class="styled-select" style="width: 100%; padding: 8px; margin-top: 6px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-family: inherit; font-size: 13px; outline: none; cursor: pointer;">
+                <option value="default">Original Website Font</option>
+                <option value="OpenDyslexic">OpenDyslexic</option>
+                <option value="Arial">Arial</option>
+                <option value="Comic Sans MS">Comic Sans</option>
+                <option value="sans-serif">Sans-Serif</option>
+              </select>
             </div>
-            <!-- Teammate 1 — add additional controls here -->
-            <p class="teammate-placeholder">[ Teammate 1: Add typography controls here ]</p>
           </div>
         </div>
 
-      </div><!-- /content-dyslexia -->
-    </div>
+      </div></div>
 
-    <!-- ─── COLOR BLINDNESS SECTION ─── -->
     <div class="accordion-item" id="section-colorblind">
       <button class="accordion-header" data-section="colorblind">
         <div class="accordion-header__left">
@@ -209,7 +186,6 @@
 
       <div class="accordion-content hidden" id="content-colorblind">
 
-        <!-- Dark Mode -->
         <div class="feature-card" id="card-dark">
           <div class="feature-card__header">
             <div class="feature-card__info">
@@ -227,7 +203,6 @@
           </div>
         </div>
 
-        <!-- CVD Filter -->
         <div class="feature-card" id="card-cvd">
           <div class="feature-card__header">
             <div class="feature-card__info">
@@ -258,13 +233,9 @@
           </div>
         </div>
 
-      </div><!-- /content-colorblind -->
-    </div>
+      </div></div>
 
-  </div><!-- /accordion -->
-
-  <!-- ── Footer ── -->
-  <div class="footer">
+  </div><div class="footer">
     <div class="footer__status">
       <span class="footer__dot" id="statusDot"></span>
       <span class="footer__text" id="statusText">No features active</span>

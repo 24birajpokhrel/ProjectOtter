@@ -2,24 +2,12 @@
  * Project Otter — popup/popup.js
  *
  * Merged popup controller.
- *
- * UI structure from ProjectOtter-main:
- *   Three accordion sections (ADHD, Dyslexia, Color Blindness).
- *   Clicking a header opens/closes that section.
- *
- * Feature logic from AccessiLens:
- *   All toggles write to chrome.storage.local and send direct messages
- *   to the active tab content scripts (2-hop, no background relay).
- *
- * Teammate zones:
- *   dyslexiaFontToggle and textScaleRange are wired to storage.
- *   Teammates add their content script logic in typography-engine.js.
- *   The IDs and storage keys are set — teammates just need the engine side.
+ * Integrates Dyslexia Font UI and Global Cross-Tab Broadcasting.
  */
 
 'use strict';
 
-// ─── Storage key strings (MUST match utils/storage-helper.js) ─────────────────
+// ─── Storage key strings ──────────────────────────────────────────────────────
 const KEYS = {
   // Focus Ruler
   RULER_ENABLED   : 'focusRulerEnabled',
@@ -34,10 +22,10 @@ const KEYS = {
   // CVD Filter
   CVD_ENABLED     : 'cvdEnabled',
   CVD_MODE        : 'cvdMode',
-  // Dyslexia (teammate zone)
+  // Dyslexia
   DYSLEXIA_FONT   : 'dyslexiaFontEnabled',
+  FONT_FAMILY     : 'dyslexiaFontFamily',
   TEXT_SCALE      : 'textScale',
-  BIONIC          : 'bionicReadingEnabled',
 };
 
 const DEFAULTS = {
@@ -51,8 +39,8 @@ const DEFAULTS = {
   [KEYS.CVD_ENABLED]     : false,
   [KEYS.CVD_MODE]        : 'none',
   [KEYS.DYSLEXIA_FONT]   : false,
+  [KEYS.FONT_FAMILY]     : 'default',
   [KEYS.TEXT_SCALE]      : 100,
-  [KEYS.BIONIC]          : false,
 };
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
@@ -89,8 +77,9 @@ const chips       = document.querySelectorAll('.chip[data-mode]');
 const bodyCvd     = document.getElementById('body-cvd');
 const cardCvd     = document.getElementById('card-cvd');
 
-// Dyslexia teammate zone
+// Dyslexia 
 const dyslexiaFontToggle = document.getElementById('dyslexiaFontToggle');
+const fontSelect         = document.getElementById('fontSelect');
 const textScaleRange     = document.getElementById('textScaleRange');
 const textScaleOutput    = document.getElementById('textScaleOutput');
 const bodyDyslexia       = document.getElementById('body-dyslexia');
@@ -105,13 +94,11 @@ const activeBadge= document.getElementById('activeBadge');
 const resetBtn   = document.getElementById('resetBtn');
 
 // ─── Accordion click handlers ─────────────────────────────────────────────────
-// From ProjectOtter-main — accordion open/close logic
 accordionItems.forEach(item => {
   const header = item.querySelector('.accordion-header');
   const content = item.querySelector('.accordion-content');
   header.addEventListener('click', () => {
     const isOpen = item.classList.contains('open');
-    // Close all, then open clicked one (or close if already open)
     accordionItems.forEach(i => {
       i.classList.remove('open');
       i.querySelector('.accordion-content')?.classList.add('hidden');
@@ -125,7 +112,6 @@ accordionItems.forEach(item => {
 
 // ─── Popup initialisation ─────────────────────────────────────────────────────
 (async () => {
-
   try {
     const stored = await chrome.storage.local.get(Object.values(KEYS));
     const s = { ...DEFAULTS, ...stored };
@@ -159,16 +145,17 @@ accordionItems.forEach(item => {
     expandBody(bodyCvd, s[KEYS.CVD_ENABLED]);
     cardCvd?.classList.toggle('active', s[KEYS.CVD_ENABLED]);
 
-    // Dyslexia teammate zone
+    // Dyslexia 
     if (dyslexiaFontToggle) dyslexiaFontToggle.checked = s[KEYS.DYSLEXIA_FONT];
+    if (fontSelect)         fontSelect.value = s[KEYS.FONT_FAMILY];
     if (textScaleRange)     textScaleRange.value        = s[KEYS.TEXT_SCALE];
     if (textScaleOutput)    textScaleOutput.textContent  = `${s[KEYS.TEXT_SCALE]}%`;
-    expandBody(bodyDyslexia, s[KEYS.DYSLEXIA_FONT]);
+    
+    // Auto-open dyslexia card settings if enabled
+    if (s[KEYS.DYSLEXIA_FONT]) cardDyslexiaFont?.querySelector('.feature-card__body')?.classList.remove('hidden');
     cardDyslexiaFont?.classList.toggle('active', s[KEYS.DYSLEXIA_FONT]);
 
     updateFooter(s);
-
-    // Auto-open the first section that has an active feature
     autoOpenActiveSection(s);
 
   } catch (err) {
@@ -184,24 +171,25 @@ accordionItems.forEach(item => {
       footerPage.title       = url.href;
     }
   } catch (_) {}
-
 })();
 
-// ─── Focus Ruler ──────────────────────────────────────────────────────────────
+// ─── Feature Listeners ────────────────────────────────────────────────────────
+
+// Focus Ruler
 rulerToggle?.addEventListener('change', async () => {
   const enabled = rulerToggle.checked;
   await chrome.storage.local.set({ [KEYS.RULER_ENABLED]: enabled });
   expandBody(bodyRuler, enabled);
   cardRuler?.classList.toggle('active', enabled);
   refreshFooter();
-  sendToTab({ type: 'FOCUS_RULER_TOGGLE', enabled, settings: { height: getHeight(), opacity: getDimOpacity() } });
+  sendToAllTabs({ type: 'FOCUS_RULER_TOGGLE', enabled, settings: { height: getHeight(), opacity: getDimOpacity() } });
 });
 
 heightRange?.addEventListener('input', () => {
   const h = getHeight();
   heightOutput.textContent = `${h} px`;
   chrome.storage.local.set({ [KEYS.RULER_HEIGHT]: h });
-  sendToTab({ type: 'FOCUS_RULER_UPDATE_SETTINGS', settings: { height: h } });
+  sendToAllTabs({ type: 'FOCUS_RULER_UPDATE_SETTINGS', settings: { height: h } });
 });
 
 opacityRange?.addEventListener('input', () => {
@@ -209,17 +197,17 @@ opacityRange?.addEventListener('input', () => {
   const op  = pct / 100;
   opacityOutput.textContent = `${pct}%`;
   chrome.storage.local.set({ [KEYS.DIM_OPACITY]: op });
-  sendToTab({ type: 'FOCUS_RULER_UPDATE_SETTINGS', settings: { opacity: op } });
+  sendToAllTabs({ type: 'FOCUS_RULER_UPDATE_SETTINGS', settings: { opacity: op } });
 });
 
-// ─── Color Overlay ────────────────────────────────────────────────────────────
+// Color Overlay
 overlayToggle?.addEventListener('change', async () => {
   const enabled = overlayToggle.checked;
   await chrome.storage.local.set({ [KEYS.OVERLAY_ENABLED]: enabled });
   expandBody(bodyOverlay, enabled);
   cardOverlay?.classList.toggle('active', enabled);
   refreshFooter();
-  sendToTab({ type: 'COLOR_OVERLAY_TOGGLE', enabled, settings: { color: getColor(), opacity: getOverlayOpacity() } });
+  sendToAllTabs({ type: 'COLOR_OVERLAY_TOGGLE', enabled, settings: { color: getColor(), opacity: getOverlayOpacity() } });
 });
 
 swatches.forEach(swatch => {
@@ -228,7 +216,7 @@ swatches.forEach(swatch => {
     setActiveSwatch(color);
     customColor.value = color;
     chrome.storage.local.set({ [KEYS.OVERLAY_COLOR]: color });
-    if (overlayToggle.checked) sendToTab({ type: 'COLOR_OVERLAY_UPDATE', settings: { color } });
+    if (overlayToggle.checked) sendToAllTabs({ type: 'COLOR_OVERLAY_UPDATE', settings: { color } });
   });
 });
 
@@ -236,7 +224,7 @@ customColor?.addEventListener('input', () => {
   const color = customColor.value;
   setActiveSwatch(null);
   chrome.storage.local.set({ [KEYS.OVERLAY_COLOR]: color });
-  if (overlayToggle.checked) sendToTab({ type: 'COLOR_OVERLAY_UPDATE', settings: { color } });
+  if (overlayToggle.checked) sendToAllTabs({ type: 'COLOR_OVERLAY_UPDATE', settings: { color } });
 });
 
 overlayOpRange?.addEventListener('input', () => {
@@ -244,20 +232,20 @@ overlayOpRange?.addEventListener('input', () => {
   const op  = pct / 100;
   overlayOpOutput.textContent = `${pct}%`;
   chrome.storage.local.set({ [KEYS.OVERLAY_OPACITY]: op });
-  if (overlayToggle.checked) sendToTab({ type: 'COLOR_OVERLAY_UPDATE', settings: { opacity: op } });
+  if (overlayToggle.checked) sendToAllTabs({ type: 'COLOR_OVERLAY_UPDATE', settings: { opacity: op } });
 });
 
-// ─── Dark Mode ────────────────────────────────────────────────────────────────
+// Dark Mode
 darkToggle?.addEventListener('change', async () => {
   const enabled = darkToggle.checked;
   await chrome.storage.local.set({ [KEYS.DARK_MODE]: enabled });
   expandBody(bodyDark, enabled);
   cardDark?.classList.toggle('active', enabled);
   refreshFooter();
-  sendToTab({ type: 'DARK_MODE_TOGGLE', enabled });
+  sendToAllTabs({ type: 'DARK_MODE_TOGGLE', enabled });
 });
 
-// ─── CVD Filter ───────────────────────────────────────────────────────────────
+// CVD Filter
 cvdToggle?.addEventListener('change', async () => {
   const enabled = cvdToggle.checked;
   const stored  = await chrome.storage.local.get([KEYS.CVD_MODE]);
@@ -271,7 +259,7 @@ cvdToggle?.addEventListener('change', async () => {
   expandBody(bodyCvd, enabled);
   cardCvd?.classList.toggle('active', enabled);
   refreshFooter();
-  sendToTab({ type: 'CVD_FILTER_TOGGLE', enabled, settings: { mode } });
+  sendToAllTabs({ type: 'CVD_FILTER_TOGGLE', enabled, settings: { mode } });
 });
 
 chips.forEach(chip => {
@@ -285,46 +273,79 @@ chips.forEach(chip => {
       cvdToggle.checked = false;
       cardCvd?.classList.remove('active');
       refreshFooter();
-      sendToTab({ type: 'CVD_FILTER_TOGGLE', enabled: false });
+      sendToAllTabs({ type: 'CVD_FILTER_TOGGLE', enabled: false });
     } else {
       setActiveChip(mode);
       chrome.storage.local.set({ [KEYS.CVD_MODE]: mode, [KEYS.CVD_ENABLED]: true });
       cvdToggle.checked = true;
       cardCvd?.classList.add('active');
       refreshFooter();
-      sendToTab({ type: 'CVD_FILTER_UPDATE', settings: { mode } });
+      sendToAllTabs({ type: 'CVD_FILTER_UPDATE', settings: { mode } });
     }
   });
 });
 
-// ─── Dyslexia teammate zone ───────────────────────────────────────────────────
-// These are pre-wired to storage so teammates just need to build the engine side.
+// ─── Dyslexia Feature (Dropdown & Font logic) ─────────────────────────────────
+
 dyslexiaFontToggle?.addEventListener('change', async () => {
   const enabled = dyslexiaFontToggle.checked;
+  const font = fontSelect ? fontSelect.value : 'default';
+  
+  // Auto-set font to OpenDyslexic if turned on while left on default
+  if (enabled && font === 'default') {
+    fontSelect.value = 'OpenDyslexic';
+    chrome.storage.local.set({ [KEYS.FONT_FAMILY]: 'OpenDyslexic' });
+  }
+
   await chrome.storage.local.set({ [KEYS.DYSLEXIA_FONT]: enabled });
-  expandBody(bodyDyslexia, enabled);
+  
+  // Open the card body to show the dropdown
+  cardDyslexiaFont?.querySelector('.feature-card__body')?.classList.toggle('hidden', !enabled);
   cardDyslexiaFont?.classList.toggle('active', enabled);
   refreshFooter();
-  // Teammate 1: add your message type here when typography-engine.js is ready
-  // sendToTab({ type: 'TYPOGRAPHY_TOGGLE', enabled });
+  
+  // Use SET_STATE format so your content script logic still works beautifully
+  sendToAllTabs({ 
+    type: 'SET_STATE', 
+    state: { dyslexia: { enabled: enabled, font: fontSelect.value } } 
+  });
+});
+
+fontSelect?.addEventListener('change', async () => {
+  const font = fontSelect.value;
+  await chrome.storage.local.set({ [KEYS.FONT_FAMILY]: font });
+
+  // Auto-enable if they select a font while the switch is off
+  if (font !== 'default' && !dyslexiaFontToggle.checked) {
+    dyslexiaFontToggle.checked = true;
+    await chrome.storage.local.set({ [KEYS.DYSLEXIA_FONT]: true });
+    cardDyslexiaFont?.querySelector('.feature-card__body')?.classList.remove('hidden');
+    cardDyslexiaFont?.classList.add('active');
+    refreshFooter();
+  }
+  
+  sendToAllTabs({ 
+    type: 'SET_STATE', 
+    state: { dyslexia: { enabled: dyslexiaFontToggle.checked, font: font } } 
+  });
 });
 
 textScaleRange?.addEventListener('input', () => {
   const scale = parseInt(textScaleRange.value, 10);
   if (textScaleOutput) textScaleOutput.textContent = `${scale}%`;
   chrome.storage.local.set({ [KEYS.TEXT_SCALE]: scale });
-  // Teammate 1: add your message type here
-  // sendToTab({ type: 'TEXT_SCALE_UPDATE', settings: { scale } });
+  sendToAllTabs({ type: 'TEXT_SCALE_UPDATE', settings: { scale } });
 });
 
 // ─── Reset all ────────────────────────────────────────────────────────────────
 resetBtn?.addEventListener('click', async () => {
   await chrome.storage.local.set(DEFAULTS);
 
-  sendToTab({ type: 'FOCUS_RULER_TOGGLE',   enabled: false });
-  sendToTab({ type: 'COLOR_OVERLAY_TOGGLE', enabled: false });
-  sendToTab({ type: 'DARK_MODE_TOGGLE',     enabled: false });
-  sendToTab({ type: 'CVD_FILTER_TOGGLE',    enabled: false });
+  sendToAllTabs({ type: 'FOCUS_RULER_TOGGLE',   enabled: false });
+  sendToAllTabs({ type: 'COLOR_OVERLAY_TOGGLE', enabled: false });
+  sendToAllTabs({ type: 'DARK_MODE_TOGGLE',     enabled: false });
+  sendToAllTabs({ type: 'CVD_FILTER_TOGGLE',    enabled: false });
+  sendToAllTabs({ type: 'SET_STATE', state: { dyslexia: { enabled: false, font: 'default' } } });
 
   // Reset UI
   rulerToggle.checked   = false;
@@ -341,6 +362,7 @@ resetBtn?.addEventListener('click', async () => {
   setActiveChip('none');
 
   if (dyslexiaFontToggle) dyslexiaFontToggle.checked = false;
+  if (fontSelect)         fontSelect.value = 'default';
   if (textScaleRange)     textScaleRange.value        = 100;
   if (textScaleOutput)    textScaleOutput.textContent  = '100%';
 
@@ -437,17 +459,19 @@ function autoOpenActiveSection(s) {
       const el = document.getElementById(id);
       el?.classList.add('open');
       el?.querySelector('.accordion-content')?.classList.remove('hidden');
-      break; // Open only the first active section
+      break; 
     }
   }
 }
 
-async function sendToTab(message) {
+// ─── The Megaphone Broadcaster (Upgraded to cover all features!) ─────────────
+async function sendToAllTabs(message) {
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id) return;
-    await chrome.tabs.sendMessage(tab.id, message);
-  } catch (_) {
-    // Silently fail on restricted pages — storage write still happened
-  }
+    const tabs = await chrome.tabs.query({});
+    for (const tab of tabs) {
+      if (tab.url && !tab.url.startsWith("chrome://")) {
+        chrome.tabs.sendMessage(tab.id, message).catch(() => {});
+      }
+    }
+  } catch (_) {}
 }

@@ -40,3 +40,64 @@
   
     console.debug('[AccessiLens] typography-engine stub loaded.');
   })();
+
+// Dyslexia Font
+
+function applyFont(dyslexiaState) {
+    const existingStyle = document.getElementById('dyslexia-font-override');
+    if (existingStyle) {
+        existingStyle.remove();
+    }
+
+    if (!dyslexiaState || !dyslexiaState.enabled || dyslexiaState.font === 'default') {
+        return;
+    }
+
+    const style = document.createElement('style');
+    style.id = 'dyslexia-font-override';
+    let fontFaceCSS = '';
+
+    if (dyslexiaState.font === 'OpenDyslexic') {
+        // Ensure this points exactly to your font file!
+        const fontUrl = chrome.runtime.getURL('assets/icons/fonts/OpenDyslexic3-Regular.ttf');
+        fontFaceCSS = `
+            @font-face {
+                font-family: 'OpenDyslexic';
+                src: url('${fontUrl}') format('truetype');
+                font-weight: normal;
+                font-style: normal;
+            }
+        `; 
+    }
+
+    style.textContent = `
+        ${fontFaceCSS}
+        * {
+            font-family: '${dyslexiaState.font}', sans-serif !important;
+            font-weight: 500 !important;
+            letter-spacing: 0.03em !important;
+            line-height: 1.6 !important;
+        }
+    `;
+    
+    if (document.head || document.documentElement) {
+        (document.head || document.documentElement).appendChild(style);
+    }
+}
+
+// 1. Check persistent memory immediately when a new tab opens
+chrome.storage.local.get(['dyslexiaFontEnabled', 'dyslexiaFontFamily'], (data) => {
+    if (data.dyslexiaFontEnabled) {
+        applyFont({ 
+            enabled: data.dyslexiaFontEnabled, 
+            font: data.dyslexiaFontFamily || 'OpenDyslexic' 
+        });
+    }
+});
+
+// 2. Listen for the live Megaphone broadcast from the popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type === 'SET_STATE' && request.state && request.state.dyslexia) {
+        applyFont(request.state.dyslexia);
+    }
+});

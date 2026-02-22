@@ -2,9 +2,9 @@
  * Project Otter — popup/popup.css
  *
  * Merged design system:
- *   - Header: ProjectOtter branding (otter, brown palette, blue logo pill)
- *   - Feature cards: AccessiLens dark system (amber accent, DM Sans/Mono)
- *   - Accordion: ProjectOtter structure + AccessiLens styling
+ * - Header: ProjectOtter branding (otter, brown palette, blue logo pill)
+ * - Feature cards: AccessiLens dark system (amber accent, DM Sans/Mono)
+ * - Accordion: ProjectOtter structure + AccessiLens styling
  */
 
 /* ─── Google Fonts fallback ──────────────────────────────────────────────── */
@@ -516,3 +516,23 @@ kbd {
   transition: all var(--dur) var(--ease);
 }
 .reset-btn:hover { border-color: #e05555; color: #e05555; }
+
+/* ─── Dyslexia Font Dropdown Styling ─────────────────────────────────────── */
+.styled-select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 6px;
+  background: var(--clr-surface-2);
+  border: 1px solid var(--clr-border-2);
+  color: var(--clr-text);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease);
+}
+
+.styled-select:focus, .styled-select:hover {
+  border-color: var(--clr-accent);
+}
