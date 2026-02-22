@@ -1,33 +1,66 @@
 {
   "manifest_version": 3,
-  "name": "AccessiLens – Visual Accessibility",
+  "name": "Project Otter",
+  "short_name": "ProjectOtter",
   "version": "1.0.0",
-  "description": "Color overlays, dark mode, and colorblindness filters for students with dyslexia, ADHD, and color vision deficiency.",
+  "description": "Educational accessibility tools for students with dyslexia, ADHD, and colorblindness.",
+
+  "icons": {
+    "16": "assets/icons/logo.png",
+    "48": "assets/icons/logo.png",
+    "128": "assets/icons/logo.png"
+  },
+
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Open Project Otter",
+    "default_icon": {
+      "16": "assets/icons/logo.png",
+      "48": "assets/icons/logo.png",
+      "128": "assets/icons/logo.png"
+    }
+  },
+
   "permissions": [
+    "storage",
     "activeTab",
     "scripting",
-    "storage",
     "tabs"
   ],
+
   "host_permissions": [
     "<all_urls>"
   ],
+
   "background": {
     "service_worker": "background/service-worker.js"
   },
-  "action": {
-    "default_popup": "popup/popup.html"
-  },
+
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_idle"
+      "js": [
+        "utils/storage-helper.js",
+        "content-scripts/focus-ruler.js",
+        "content-scripts/visual-filters.js",
+        "content-scripts/typography.js"
+      ],
+      "css": [
+        "styles/global.css"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
     }
   ],
+
   "web_accessible_resources": [
     {
-      "resources": ["fonts/*.ttf"],
+      "resources": [
+        "styles/global.css",
+        "styles/ruler-shadow.css",
+        "assets/icons/logo.png",
+        "assets/icons/fonts/*.ttf"
+      ],
       "matches": ["<all_urls>"]
     }
   ]

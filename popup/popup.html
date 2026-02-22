@@ -1,236 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AccessiLens</title>
+  <title>Project Otter</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@500&display=swap" rel="stylesheet"/>
-  
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0f0f13; --surface: #1a1a24; --surface2: #22222f;
-      --border: #2e2e42; --accent: #7c6ffa; --accent2: #fa8bff;
-      --text: #e8e8f0; --text-muted: #7878a0; --success: #4ade80;
-      --warning: #fbbf24; --overlay-on: rgba(124, 111, 250, 0.15);
-      --radius: 12px; --radius-sm: 8px;
-    }
-    body { width: 340px; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; line-height: 1.5; overflow-x: hidden; }
-    .header { display: flex; align-items: center; gap: 10px; padding: 16px 18px 14px; border-bottom: 1px solid var(--border); background: linear-gradient(135deg, #16162a 0%, #1a1428 100%); }
-    .logo { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-    .header-text h1 { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
-    .header-text p { font-size: 11px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
-    .sections { padding: 12px 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-    .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color 0.2s; }
-    .section.active { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(124,111,250,0.2); }
-    .section-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: default; }
-    .section-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; }
-    .section-info { flex: 1; }
-    .section-label { font-weight: 600; font-size: 13px; color: var(--text); }
-    .section-desc { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
-    .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
-    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-    .toggle-track { position: absolute; inset: 0; background: var(--border); border-radius: 11px; cursor: pointer; transition: background 0.25s; }
-    .toggle-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--text-muted); transition: transform 0.25s, background 0.25s; }
-    .toggle input:checked + .toggle-track { background: var(--accent); }
-    .toggle input:checked + .toggle-track::after { transform: translateX(18px); background: #fff; }
-    .section-body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--border); margin-top: 0; }
-    .section-body.hidden { display: none; }
-    .label-row { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
-    .sub-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-    .swatch-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-    .swatch { width: 30px; height: 30px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: transform 0.15s, border-color 0.15s; position: relative; }
-    .swatch:hover { transform: scale(1.1); }
-    .swatch.selected { border-color: var(--accent); }
-    .swatch.selected::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: rgba(0,0,0,0.7); font-weight: 700; }
-    .color-custom { width: 30px; height: 30px; border-radius: 6px; border: 2px dashed var(--border); background: var(--surface2); cursor: pointer; overflow: hidden; padding: 0; transition: border-color 0.15s; }
-    .color-custom:hover { border-color: var(--accent); }
-    .color-custom input[type="color"] { width: 150%; height: 150%; border: none; margin: -25%; cursor: pointer; opacity: 0; position: absolute; }
-    .color-custom-wrap { position: relative; width: 30px; height: 30px; }
-    .color-custom-wrap::before { content: '+'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text-muted); pointer-events: none; }
-    .slider-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
-    .slider-label { font-size: 11px; color: var(--text-muted); min-width: 22px; text-align: right; font-family: 'DM Mono', monospace; }
-    input[type="range"] { flex: 1; height: 4px; -webkit-appearance: none; background: var(--border); border-radius: 2px; outline: none; cursor: pointer; }
-    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; transition: transform 0.15s; box-shadow: 0 0 0 3px rgba(124,111,250,0.25); }
-    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-    .pill-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-    .pill { padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-muted); font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-    .pill:hover { border-color: var(--accent); color: var(--text); }
-    .pill.selected { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
-    .info-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 2px 7px; border-radius: 10px; background: rgba(124,111,250,0.15); color: var(--accent); font-weight: 500; }
-    .footer { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-    .footer-status { font-size: 11px; color: var(--text-muted); }
-    .footer-status span { color: var(--success); font-weight: 600; }
-    .reset-btn { font-size: 11px; color: var(--text-muted); background: none; border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
-    .reset-btn:hover { border-color: #e05555; color: #e05555; }
-    .preview-strip { height: 4px; width: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); opacity: 0; transition: opacity 0.3s; }
-    .preview-strip.visible { opacity: 1; }
-    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-    .section-body:not(.hidden) { animation: fadeSlideIn 0.2s ease; }
-
-    /* Custom CSS just for your dropdown to match the theme */
-    .styled-select {
-      width: 100%; padding: 8px; margin-top: 6px; background: var(--surface2); border: 1px solid var(--border); 
-      color: var(--text); border-radius: var(--radius-sm); font-family: inherit; font-size: 13px; outline: none; cursor: pointer;
-    }
-    .styled-select:focus { border-color: var(--accent); }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="popup.css"/>
 </head>
 <body>
 
   <div class="header">
-    <div class="logo">👁</div>
-    <div class="header-text">
-      <h1>AccessiLens</h1>
-      <p>visual accessibility toolkit</p>
+    <div class="logo-area">
+      <div class="logo-circle">🦦</div>
+      <div class="logo-text">
+        <span class="logo-title">Project Otter</span>
+        <span class="logo-sub">accessibility toolkit</span>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="active-badge hidden" id="activeBadge">● active</span>
     </div>
   </div>
 
-  <div class="preview-strip" id="previewStrip"></div>
+  <div class="preview-bar" id="previewBar"></div>
 
-  <div class="sections">
+  <div class="accordion">
 
-    <div class="section" id="section-overlay">
-      <div class="section-header">
-        <div class="section-icon">🎨</div>
-        <div class="section-info">
-          <div class="section-label">Color Overlay / Tint</div>
-          <div class="section-desc">Reduces visual stress &amp; glare</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="toggle-overlay"/>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="section-body hidden" id="body-overlay">
-        <div>
-          <div class="label-row">
-            <span class="sub-label">Tint Color</span>
-            <span class="info-tag">ADHD · Dyslexia</span>
+    <div class="accordion-item" id="section-adhd">
+      <button class="accordion-header" data-section="adhd">
+        <div class="accordion-header__left">
+          <span class="accordion-icon">🧠</span>
+          <div>
+            <span class="accordion-label">ADHD</span>
+            <span class="accordion-desc">Focus &amp; distraction tools</span>
           </div>
-          <div class="swatch-row" id="swatches">
-            <div class="swatch selected" data-color="#ffff99" style="background:#ffff99;" title="Soft Yellow"></div>
-            <div class="swatch" data-color="#c8e6ff" style="background:#c8e6ff;" title="Sky Blue"></div>
-            <div class="swatch" data-color="#d4f4dd" style="background:#d4f4dd;" title="Mint Green"></div>
-            <div class="swatch" data-color="#ffd6e8" style="background:#ffd6e8;" title="Rose Pink"></div>
-            <div class="swatch" data-color="#e8d5ff" style="background:#e8d5ff;" title="Lavender"></div>
-            <div class="swatch" data-color="#ffe0c0" style="background:#ffe0c0;" title="Peach"></div>
-            <div class="color-custom-wrap" title="Custom color">
-              <input type="color" id="custom-color" value="#ffff99"/>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <div class="accordion-content hidden" id="content-adhd">
+
+        <div class="feature-card" id="card-ruler">
+          <div class="feature-card__header">
+            <div class="feature-card__info">
+              <span class="feature-card__name">Focus Ruler</span>
+              <span class="feature-card__desc">Reading mask that follows your cursor</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="rulerToggle" role="switch" aria-label="Enable Focus Ruler"/>
+              <span class="toggle__track"></span>
+              <span class="toggle__thumb"></span>
+            </label>
+          </div>
+
+          <div class="feature-card__body hidden" id="body-ruler">
+            <div class="setting-row">
+              <div class="setting-row__head">
+                <label class="setting-row__label" for="heightRange">Strip Height</label>
+                <span class="setting-row__value" id="heightOutput">40 px</span>
+              </div>
+              <input type="range" id="heightRange" min="16" max="140" value="40" step="2"/>
+              <div class="slider-legend"><span>Narrow</span><span>Wide</span></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-row__head">
+                <label class="setting-row__label" for="opacityRange">Dim Intensity</label>
+                <span class="setting-row__value" id="opacityOutput">75%</span>
+              </div>
+              <input type="range" id="opacityRange" min="10" max="95" value="75" step="5"/>
+              <div class="slider-legend"><span>Light</span><span>Dark</span></div>
+            </div>
+            <div class="kbd-hint">
+              <kbd>Alt</kbd><kbd>Shift</kbd><kbd>R</kbd>
+              <span>keyboard shortcut</span>
             </div>
           </div>
         </div>
-        <div>
-          <div class="label-row">
-            <span class="sub-label">Opacity</span>
-            <span class="slider-label" id="opacity-label">15%</span>
-          </div>
-          <div class="slider-row">
-            <span style="font-size:11px;color:var(--text-muted);">Low</span>
-            <input type="range" id="slider-opacity" min="5" max="50" value="15" step="1"/>
-            <span style="font-size:11px;color:var(--text-muted);">High</span>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <div class="section" id="section-dyslexia">
-      <div class="section-header">
-        <div class="section-icon">📝</div>
-        <div class="section-info">
-          <div class="section-label">Dyslexia Font</div>
-          <div class="section-desc">Improves reading fluency</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="toggle-dyslexia"/>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="section-body" id="body-dyslexia">
-        <div>
-          <div class="label-row">
-            <span class="sub-label">Font Family</span>
-            <span class="info-tag">Dyslexia</span>
-          </div>
-          <select id="fontSelect" class="styled-select">
-            <option value="default">Original Website Font</option>
-            <option value="OpenDyslexic">OpenDyslexic</option>
-            <option value="Arial">Arial</option>
-            <option value="Comic Sans MS">Comic Sans</option>
-            <option value="sans-serif">Sans-Serif</option>
-          </select>
-        </div>
-      </div>
-    </div>
+      </div></div>
 
-    <div class="section" id="section-dark">
-      <div class="section-header">
-        <div class="section-icon">🌙</div>
-        <div class="section-info">
-          <div class="section-label">Dark Mode</div>
-          <div class="section-desc">Reduces eye strain in low light</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="toggle-dark"/>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="section-body hidden" id="body-dark">
-        <div>
-          <div class="label-row">
-            <span class="sub-label">About</span>
-            <span class="info-tag">All users</span>
+    <div class="accordion-item" id="section-dyslexia">
+      <button class="accordion-header" data-section="dyslexia">
+        <div class="accordion-header__left">
+          <span class="accordion-icon">📖</span>
+          <div>
+            <span class="accordion-label">Dyslexia</span>
+            <span class="accordion-desc">Font &amp; typography tools</span>
           </div>
-          <p style="font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.6;">
-            Inverts bright white backgrounds to dark surfaces while preserving text legibility.
-            Best used at night or in dim environments.
-          </p>
         </div>
-      </div>
-    </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
 
-    <div class="section" id="section-cb">
-      <div class="section-header">
-        <div class="section-icon">🔵</div>
-        <div class="section-info">
-          <div class="section-label">Colorblindness Filter</div>
-          <div class="section-desc">SVG simulation + compensation</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="toggle-cb"/>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="section-body hidden" id="body-cb">
-        <div>
-          <div class="label-row">
-            <span class="sub-label">Type</span>
-          </div>
-          <p style="font-size:11px;color:var(--text-muted);margin-top:6px;margin-bottom:4px;">🔴 Red-Green Deficiency</p>
-          <div class="pill-row">
-            <div class="pill" data-mode="protanopia">Protanopia <span style="font-size:9px;">(No red)</span></div>
-            <div class="pill" data-mode="deuteranopia">Deuteranopia <span style="font-size:9px;">(No green)</span></div>
-          </div>
-          <p style="font-size:11px;color:var(--text-muted);margin-top:10px;margin-bottom:4px;">🔵 Blue-Yellow Deficiency</p>
-          <div class="pill-row">
-            <div class="pill" data-mode="tritanopia">Tritanopia <span style="font-size:9px;">(No blue)</span></div>
-          </div>
-          <div style="margin-top:10px;padding:8px 10px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:8px;">
-            <p style="font-size:11px;color:#fbbf24;line-height:1.5;">
-              ⚠ Filters apply a simulation matrix to help verify color accessibility of web content — not a correction lens.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+      <div class="accordion-content hidden" id="content-dyslexia">
 
+        <div class="feature-card" id="card-overlay">
+          <div class="feature-card__header">
+            <div class="feature-card__info">
+              <span class="feature-card__name">Color Overlay</span>
+              <span class="feature-card__desc">Tint that reduces visual stress &amp; glare</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="overlayToggle" role="switch" aria-label="Enable Color Overlay"/>
+              <span class="toggle__track"></span>
+              <span class="toggle__thumb"></span>
+            </label>
+          </div>
+
+          <div class="feature-card__body hidden" id="body-overlay">
+            <div class="setting-row">
+              <div class="setting-row__head">
+                <span class="setting-row__label">Tint Color</span>
+              </div>
+              <div class="swatch-grid" id="swatchGrid" role="radiogroup" aria-label="Tint color">
+                <button class="swatch selected" data-color="#ffff99" style="background:#ffff99;" title="Soft Yellow" role="radio" aria-checked="true"></button>
+                <button class="swatch" data-color="#c8e6ff" style="background:#c8e6ff;" title="Sky Blue"   role="radio" aria-checked="false"></button>
+                <button class="swatch" data-color="#d4f4dd" style="background:#d4f4dd;" title="Mint Green" role="radio" aria-checked="false"></button>
+                <button class="swatch" data-color="#ffd6e8" style="background:#ffd6e8;" title="Rose Pink"  role="radio" aria-checked="false"></button>
+                <button class="swatch" data-color="#e8d5ff" style="background:#e8d5ff;" title="Lavender"   role="radio" aria-checked="false"></button>
+                <button class="swatch" data-color="#ffe0c0" style="background:#ffe0c0;" title="Peach"      role="radio" aria-checked="false"></button>
+                <label class="swatch swatch--custom" title="Custom color">
+                  <span aria-hidden="true">+</span>
+                  <input type="color" id="customColor" value="#ffff99" aria-label="Custom tint color"/>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-row__head">
+                <label class="setting-row__label" for="overlayOpacityRange">Strength</label>
+                <span class="setting-row__value" id="overlayOpacityOutput">15%</span>
+              </div>
+              <input type="range" id="overlayOpacityRange" min="5" max="50" value="15" step="1"/>
+              <div class="slider-legend"><span>Subtle</span><span>Strong</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-card teammate-zone" id="card-dyslexia-font">
+          <div class="feature-card__header">
+            <div class="feature-card__info">
+              <span class="feature-card__name">Dyslexia-Friendly Font</span>
+              <span class="feature-card__desc">Switches page font to OpenDyslexic</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="dyslexiaFontToggle" role="switch" aria-label="Enable Dyslexia Font"/>
+              <span class="toggle__track"></span>
+              <span class="toggle__thumb"></span>
+            </label>
+          </div>
+          <div class="feature-card__body hidden" id="body-dyslexia">
+            <div class="setting-row">
+              <div class="setting-row__head">
+                <label class="setting-row__label" for="fontSelect">Font Family</label>
+              </div>
+              <select id="fontSelect" class="styled-select" style="width: 100%; padding: 8px; margin-top: 6px; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-family: inherit; font-size: 13px; outline: none; cursor: pointer;">
+                <option value="default">Original Website Font</option>
+                <option value="OpenDyslexic">OpenDyslexic</option>
+                <option value="Arial">Arial</option>
+                <option value="Comic Sans MS">Comic Sans</option>
+                <option value="sans-serif">Sans-Serif</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div></div>
+
+    <div class="accordion-item" id="section-colorblind">
+      <button class="accordion-header" data-section="colorblind">
+        <div class="accordion-header__left">
+          <span class="accordion-icon">🎨</span>
+          <div>
+            <span class="accordion-label">Color Blindness</span>
+            <span class="accordion-desc">Visual filter &amp; dark mode</span>
+          </div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <div class="accordion-content hidden" id="content-colorblind">
+
+        <div class="feature-card" id="card-dark">
+          <div class="feature-card__header">
+            <div class="feature-card__info">
+              <span class="feature-card__name">Dark Mode</span>
+              <span class="feature-card__desc">Reduces eye strain in low light</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="darkToggle" role="switch" aria-label="Enable Dark Mode"/>
+              <span class="toggle__track"></span>
+              <span class="toggle__thumb"></span>
+            </label>
+          </div>
+          <div class="feature-card__body hidden" id="body-dark">
+            <p class="feature-card__note">Converts bright white backgrounds to dark surfaces. Best in dim environments.</p>
+          </div>
+        </div>
+
+        <div class="feature-card" id="card-cvd">
+          <div class="feature-card__header">
+            <div class="feature-card__info">
+              <span class="feature-card__name">Colorblindness Filter</span>
+              <span class="feature-card__desc">SVG matrix filter for CVD simulation</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="cvdToggle" role="switch" aria-label="Enable Colorblindness Filter"/>
+              <span class="toggle__track"></span>
+              <span class="toggle__thumb"></span>
+            </label>
+          </div>
+          <div class="feature-card__body hidden" id="body-cvd">
+            <div class="setting-row">
+              <p class="chip-group-label">🔴 Red-Green</p>
+              <div class="chip-group" role="radiogroup" aria-label="CVD filter type">
+                <button class="chip" data-mode="protanopia"   role="radio" aria-checked="false">Protanopia <span class="chip__sub">no red</span></button>
+                <button class="chip" data-mode="deuteranopia" role="radio" aria-checked="false">Deuteranopia <span class="chip__sub">no green</span></button>
+              </div>
+              <p class="chip-group-label" style="margin-top:8px;">🔵 Blue-Yellow</p>
+              <div class="chip-group">
+                <button class="chip" data-mode="tritanopia" role="radio" aria-checked="false">Tritanopia <span class="chip__sub">no blue</span></button>
+              </div>
+              <div class="feature-card__warning">
+                ⚠ Filters simulate CVD for accessibility testing, not vision correction.
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div></div>
+
+  </div><div class="footer">
+    <div class="footer__status">
+      <span class="footer__dot" id="statusDot"></span>
+      <span class="footer__text" id="statusText">No features active</span>
+    </div>
+    <div class="footer__right">
+      <span class="footer__page" id="footerPage"></span>
+      <button class="reset-btn" id="resetBtn">Reset all</button>
+    </div>
   </div>
 
-  <div class="footer">
-    <div class="footer-status" id="status-text">No features active</div>
-    <button class="reset-btn" id="reset-btn">Reset all</button>
-  </div>
   <script src="popup.js"></script>
 </body>
 </html>
