@@ -1,22 +1,3 @@
-/**
- * Project Otter — popup/popup.js
- *
- * Merged popup controller.
- *
- * UI structure from ProjectOtter-main:
- *   Three accordion sections (ADHD, Dyslexia, Color Blindness).
- *   Clicking a header opens/closes that section.
- *
- * Feature logic from AccessiLens:
- *   All toggles write to chrome.storage.local and send direct messages
- *   to the active tab content scripts (2-hop, no background relay).
- *
- * Teammate zones:
- *   dyslexiaFontToggle and textScaleRange are wired to storage.
- *   Teammates add their content script logic in typography-engine.js.
- *   The IDs and storage keys are set — teammates just need the engine side.
- */
-
 'use strict';
 
 // ─── Storage key strings (MUST match utils/storage-helper.js) ─────────────────
@@ -38,6 +19,10 @@ const KEYS = {
   DYSLEXIA_FONT   : 'dyslexiaFontEnabled',
   TEXT_SCALE      : 'textScale',
   BIONIC          : 'bionicReadingEnabled',
+
+  // --- ADDITION: TTS KEYS ---
+  TTS_ENABLED     : 'ttsEnabled',
+  TTS_SPEED       : 'ttsSpeed',
 };
 
 const DEFAULTS = {
@@ -53,6 +38,9 @@ const DEFAULTS = {
   [KEYS.DYSLEXIA_FONT]   : false,
   [KEYS.TEXT_SCALE]      : 100,
   [KEYS.BIONIC]          : false,
+  // --- ADDITION: TTS DEFAULTS ---
+  [KEYS.TTS_ENABLED]     : false,
+  [KEYS.TTS_SPEED]       : 1.0,
 };
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
@@ -96,6 +84,13 @@ const textScaleOutput    = document.getElementById('textScaleOutput');
 const bodyDyslexia       = document.getElementById('body-dyslexia');
 const cardDyslexiaFont   = document.getElementById('card-dyslexia-font');
 
+// --- ADDITION: TTS DOM REFS ---
+const ttsToggle      = document.getElementById('ttsToggle');
+const ttsSpeedRange  = document.getElementById('ttsSpeedRange');
+const ttsSpeedOutput = document.getElementById('ttsSpeedOutput');
+const bodyTts        = document.getElementById('body-tts');
+const cardTts        = document.getElementById('card-tts');
+
 // Footer
 const statusDot  = document.getElementById('statusDot');
 const statusText = document.getElementById('statusText');
@@ -105,13 +100,11 @@ const activeBadge= document.getElementById('activeBadge');
 const resetBtn   = document.getElementById('resetBtn');
 
 // ─── Accordion click handlers ─────────────────────────────────────────────────
-// From ProjectOtter-main — accordion open/close logic
 accordionItems.forEach(item => {
   const header = item.querySelector('.accordion-header');
   const content = item.querySelector('.accordion-content');
   header.addEventListener('click', () => {
     const isOpen = item.classList.contains('open');
-    // Close all, then open clicked one (or close if already open)
     accordionItems.forEach(i => {
       i.classList.remove('open');
       i.querySelector('.accordion-content')?.classList.add('hidden');
@@ -131,30 +124,30 @@ accordionItems.forEach(item => {
     const s = { ...DEFAULTS, ...stored };
 
     // Focus Ruler
-    rulerToggle.checked   = s[KEYS.RULER_ENABLED];
-    heightRange.value     = s[KEYS.RULER_HEIGHT];
-    opacityRange.value    = Math.round(s[KEYS.DIM_OPACITY] * 100);
-    heightOutput.textContent  = `${s[KEYS.RULER_HEIGHT]} px`;
-    opacityOutput.textContent = `${Math.round(s[KEYS.DIM_OPACITY] * 100)}%`;
+    if(rulerToggle) rulerToggle.checked = s[KEYS.RULER_ENABLED];
+    if(heightRange) heightRange.value = s[KEYS.RULER_HEIGHT];
+    if(opacityRange) opacityRange.value = Math.round(s[KEYS.DIM_OPACITY] * 100);
+    if(heightOutput) heightOutput.textContent = `${s[KEYS.RULER_HEIGHT]} px`;
+    if(opacityOutput) opacityOutput.textContent = `${Math.round(s[KEYS.DIM_OPACITY] * 100)}%`;
     expandBody(bodyRuler, s[KEYS.RULER_ENABLED]);
     cardRuler?.classList.toggle('active', s[KEYS.RULER_ENABLED]);
 
     // Color Overlay
-    overlayToggle.checked        = s[KEYS.OVERLAY_ENABLED];
-    overlayOpRange.value         = Math.round(s[KEYS.OVERLAY_OPACITY] * 100);
-    overlayOpOutput.textContent  = `${Math.round(s[KEYS.OVERLAY_OPACITY] * 100)}%`;
-    customColor.value            = s[KEYS.OVERLAY_COLOR];
+    if(overlayToggle) overlayToggle.checked = s[KEYS.OVERLAY_ENABLED];
+    if(overlayOpRange) overlayOpRange.value = Math.round(s[KEYS.OVERLAY_OPACITY] * 100);
+    if(overlayOpOutput) overlayOpOutput.textContent = `${Math.round(s[KEYS.OVERLAY_OPACITY] * 100)}%`;
+    if(customColor) customColor.value = s[KEYS.OVERLAY_COLOR];
     setActiveSwatch(s[KEYS.OVERLAY_COLOR]);
     expandBody(bodyOverlay, s[KEYS.OVERLAY_ENABLED]);
     cardOverlay?.classList.toggle('active', s[KEYS.OVERLAY_ENABLED]);
 
     // Dark Mode
-    darkToggle.checked = s[KEYS.DARK_MODE];
+    if(darkToggle) darkToggle.checked = s[KEYS.DARK_MODE];
     expandBody(bodyDark, s[KEYS.DARK_MODE]);
     cardDark?.classList.toggle('active', s[KEYS.DARK_MODE]);
 
     // CVD Filter
-    cvdToggle.checked = s[KEYS.CVD_ENABLED];
+    if(cvdToggle) cvdToggle.checked = s[KEYS.CVD_ENABLED];
     setActiveChip(s[KEYS.CVD_MODE]);
     expandBody(bodyCvd, s[KEYS.CVD_ENABLED]);
     cardCvd?.classList.toggle('active', s[KEYS.CVD_ENABLED]);
@@ -166,28 +159,32 @@ accordionItems.forEach(item => {
     expandBody(bodyDyslexia, s[KEYS.DYSLEXIA_FONT]);
     cardDyslexiaFont?.classList.toggle('active', s[KEYS.DYSLEXIA_FONT]);
 
-    updateFooter(s);
+    // --- ADDITION: TTS Initialization ---
+    if (ttsToggle) ttsToggle.checked = s[KEYS.TTS_ENABLED];
+    if (ttsSpeedRange) ttsSpeedRange.value = s[KEYS.TTS_SPEED] || 1.0;
+    if (ttsSpeedOutput) ttsSpeedOutput.textContent = `${ttsSpeedRange.value}x`;
+    expandBody(bodyTts, s[KEYS.TTS_ENABLED]);
+    cardTts?.classList.toggle('active', s[KEYS.TTS_ENABLED]);
 
-    // Auto-open the first section that has an active feature
+    updateFooter(s);
     autoOpenActiveSection(s);
 
   } catch (err) {
     console.warn('[ProjectOtter Popup] Storage read failed:', err);
   }
 
-  // Show current tab hostname in footer
+  // Show hostname
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (tab?.url) {
       const url = new URL(tab.url);
       footerPage.textContent = url.hostname;
-      footerPage.title       = url.href;
     }
   } catch (_) {}
 
 })();
 
-// ─── Focus Ruler ──────────────────────────────────────────────────────────────
+// ─── Focus Ruler Listeners ────────────────────────────────────────────────────
 rulerToggle?.addEventListener('change', async () => {
   const enabled = rulerToggle.checked;
   await chrome.storage.local.set({ [KEYS.RULER_ENABLED]: enabled });
@@ -212,7 +209,7 @@ opacityRange?.addEventListener('input', () => {
   sendToTab({ type: 'FOCUS_RULER_UPDATE_SETTINGS', settings: { opacity: op } });
 });
 
-// ─── Color Overlay ────────────────────────────────────────────────────────────
+// ─── Color Overlay Listeners ──────────────────────────────────────────────────
 overlayToggle?.addEventListener('change', async () => {
   const enabled = overlayToggle.checked;
   await chrome.storage.local.set({ [KEYS.OVERLAY_ENABLED]: enabled });
@@ -247,7 +244,7 @@ overlayOpRange?.addEventListener('input', () => {
   if (overlayToggle.checked) sendToTab({ type: 'COLOR_OVERLAY_UPDATE', settings: { opacity: op } });
 });
 
-// ─── Dark Mode ────────────────────────────────────────────────────────────────
+// ─── Dark Mode Listeners ──────────────────────────────────────────────────────
 darkToggle?.addEventListener('change', async () => {
   const enabled = darkToggle.checked;
   await chrome.storage.local.set({ [KEYS.DARK_MODE]: enabled });
@@ -257,7 +254,7 @@ darkToggle?.addEventListener('change', async () => {
   sendToTab({ type: 'DARK_MODE_TOGGLE', enabled });
 });
 
-// ─── CVD Filter ───────────────────────────────────────────────────────────────
+// ─── CVD Filter Listeners ─────────────────────────────────────────────────────
 cvdToggle?.addEventListener('change', async () => {
   const enabled = cvdToggle.checked;
   const stored  = await chrome.storage.local.get([KEYS.CVD_MODE]);
@@ -297,27 +294,37 @@ chips.forEach(chip => {
   });
 });
 
-// ─── Dyslexia teammate zone ───────────────────────────────────────────────────
-// These are pre-wired to storage so teammates just need to build the engine side.
+// ─── Dyslexia Listeners ───────────────────────────────────────────────────────
 dyslexiaFontToggle?.addEventListener('change', async () => {
   const enabled = dyslexiaFontToggle.checked;
   await chrome.storage.local.set({ [KEYS.DYSLEXIA_FONT]: enabled });
   expandBody(bodyDyslexia, enabled);
   cardDyslexiaFont?.classList.toggle('active', enabled);
   refreshFooter();
-  // Teammate 1: add your message type here when typography-engine.js is ready
-  // sendToTab({ type: 'TYPOGRAPHY_TOGGLE', enabled });
 });
 
 textScaleRange?.addEventListener('input', () => {
   const scale = parseInt(textScaleRange.value, 10);
   if (textScaleOutput) textScaleOutput.textContent = `${scale}%`;
   chrome.storage.local.set({ [KEYS.TEXT_SCALE]: scale });
-  // Teammate 1: add your message type here
-  // sendToTab({ type: 'TEXT_SCALE_UPDATE', settings: { scale } });
 });
 
-// ─── Reset all ────────────────────────────────────────────────────────────────
+// --- ADDITION: TTS Listeners ---
+ttsToggle?.addEventListener('change', async () => {
+  const enabled = ttsToggle.checked;
+  await chrome.storage.local.set({ [KEYS.TTS_ENABLED]: enabled });
+  expandBody(bodyTts, enabled);
+  cardTts?.classList.toggle('active', enabled);
+  refreshFooter();
+});
+
+ttsSpeedRange?.addEventListener('input', () => {
+  const val = parseFloat(ttsSpeedRange.value);
+  if (ttsSpeedOutput) ttsSpeedOutput.textContent = `${val.toFixed(1)}x`;
+  chrome.storage.local.set({ [KEYS.TTS_SPEED]: val });
+});
+
+// ─── Reset All ────────────────────────────────────────────────────────────────
 resetBtn?.addEventListener('click', async () => {
   await chrome.storage.local.set(DEFAULTS);
 
@@ -326,32 +333,36 @@ resetBtn?.addEventListener('click', async () => {
   sendToTab({ type: 'DARK_MODE_TOGGLE',     enabled: false });
   sendToTab({ type: 'CVD_FILTER_TOGGLE',    enabled: false });
 
-  // Reset UI
-  rulerToggle.checked   = false;
-  heightRange.value     = 40;   heightOutput.textContent  = '40 px';
-  opacityRange.value    = 75;   opacityOutput.textContent = '75%';
+  // Reset UI elements
+  if(rulerToggle) rulerToggle.checked = false;
+  if(heightRange) heightRange.value = 40;
+  if(heightOutput) heightOutput.textContent = '40 px';
+  if(opacityRange) opacityRange.value = 75;
+  if(opacityOutput) opacityOutput.textContent = '75%';
 
-  overlayToggle.checked = false;
-  overlayOpRange.value  = 15;   overlayOpOutput.textContent = '15%';
-  customColor.value     = '#ffff99';
+  if(overlayToggle) overlayToggle.checked = false;
+  if(overlayOpRange) overlayOpRange.value = 15;
+  if(overlayOpOutput) overlayOpOutput.textContent = '15%';
+  if(customColor) customColor.value = '#ffff99';
   setActiveSwatch('#ffff99');
 
-  darkToggle.checked = false;
-  cvdToggle.checked  = false;
+  if(darkToggle) darkToggle.checked = false;
+  if(cvdToggle) cvdToggle.checked = false;
   setActiveChip('none');
 
   if (dyslexiaFontToggle) dyslexiaFontToggle.checked = false;
-  if (textScaleRange)     textScaleRange.value        = 100;
-  if (textScaleOutput)    textScaleOutput.textContent  = '100%';
+  if (textScaleRange) textScaleRange.value = 100;
+  if (textScaleOutput) textScaleOutput.textContent = '100%';
 
-  [bodyRuler, bodyOverlay, bodyDark, bodyCvd, bodyDyslexia].forEach(b => expandBody(b, false));
-  [cardRuler, cardOverlay, cardDark, cardCvd, cardDyslexiaFont].forEach(c => c?.classList.remove('active'));
-  document.querySelectorAll('.accordion-item').forEach(i => {
-    i.classList.remove('open', 'has-active');
-    i.querySelector('.accordion-content')?.classList.add('hidden');
-  });
+  // Reset TTS UI
+  if (ttsToggle) ttsToggle.checked = false;
+  if (ttsSpeedRange) ttsSpeedRange.value = 1.0;
+  if (ttsSpeedOutput) ttsSpeedOutput.textContent = '1.0x';
 
-  updateFooter(DEFAULTS);
+  [bodyRuler, bodyOverlay, bodyDark, bodyCvd, bodyDyslexia, bodyTts].forEach(b => expandBody(b, false));
+  [cardRuler, cardOverlay, cardDark, cardCvd, cardDyslexiaFont, cardTts].forEach(c => c?.classList.remove('active'));
+  
+  refreshFooter();
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -392,6 +403,7 @@ function updateFooter(s) {
     s[KEYS.DARK_MODE],
     s[KEYS.CVD_ENABLED],
     s[KEYS.DYSLEXIA_FONT],
+    s[KEYS.TTS_ENABLED] // Added to active count
   ].filter(Boolean).length;
 
   const hasActive = active > 0;
@@ -405,24 +417,18 @@ function updateFooter(s) {
       : 'No features active';
   }
 
-  // Card borders
-  cardRuler?.classList.toggle('active',        !!s[KEYS.RULER_ENABLED]);
-  cardOverlay?.classList.toggle('active',      !!s[KEYS.OVERLAY_ENABLED]);
-  cardDark?.classList.toggle('active',         !!s[KEYS.DARK_MODE]);
-  cardCvd?.classList.toggle('active',          !!s[KEYS.CVD_ENABLED]);
-  cardDyslexiaFont?.classList.toggle('active', !!s[KEYS.DYSLEXIA_FONT]);
-
-  // Section-level amber border if any card inside is active
-  const adhdActive = !!s[KEYS.RULER_ENABLED];
+  // Cards & Sections
+  const adhdActive = !!s[KEYS.RULER_ENABLED] || !!s[KEYS.TTS_ENABLED];
   const dyslexiaActive = !!s[KEYS.OVERLAY_ENABLED] || !!s[KEYS.DYSLEXIA_FONT];
   const cbActive = !!s[KEYS.DARK_MODE] || !!s[KEYS.CVD_ENABLED];
+  
   document.getElementById('section-adhd')?.classList.toggle('has-active', adhdActive);
   document.getElementById('section-dyslexia')?.classList.toggle('has-active', dyslexiaActive);
   document.getElementById('section-colorblind')?.classList.toggle('has-active', cbActive);
 }
 
 function autoOpenActiveSection(s) {
-  const adhdActive     = !!s[KEYS.RULER_ENABLED];
+  const adhdActive     = !!s[KEYS.RULER_ENABLED] || !!s[KEYS.TTS_ENABLED];
   const dyslexiaActive = !!s[KEYS.OVERLAY_ENABLED] || !!s[KEYS.DYSLEXIA_FONT];
   const cbActive       = !!s[KEYS.DARK_MODE] || !!s[KEYS.CVD_ENABLED];
 
@@ -437,7 +443,7 @@ function autoOpenActiveSection(s) {
       const el = document.getElementById(id);
       el?.classList.add('open');
       el?.querySelector('.accordion-content')?.classList.remove('hidden');
-      break; // Open only the first active section
+      break;
     }
   }
 }
@@ -447,7 +453,5 @@ async function sendToTab(message) {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) return;
     await chrome.tabs.sendMessage(tab.id, message);
-  } catch (_) {
-    // Silently fail on restricted pages — storage write still happened
-  }
+  } catch (_) {}
 }
